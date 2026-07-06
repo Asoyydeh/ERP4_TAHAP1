@@ -1,0 +1,15 @@
+{
+  "folders": [
+    {
+      "name": "Asset Management - Backend",
+      "path": "backend"
+    },
+    {
+      "name": "Asset Management - Frontend",
+      "path": "frontend"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib"
+  }
+}

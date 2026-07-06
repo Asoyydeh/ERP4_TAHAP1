@@ -1,0 +1,71 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum AssetStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
+  RETIRED
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String
+  email        String     @unique
+  passwordHash String     @map("password_hash")
+  role         Role       @default(STAFF)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  logs         AssetLog[]
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  assets      Asset[]
+
+  @@map("categories")
+}
+
+model Asset {
+  id           String      @id @default(uuid())
+  skuCode      String      @unique @map("sku_code")
+  name         String
+  categoryId   String      @map("category_id")
+  category     Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  status       AssetStatus @default(AVAILABLE)
+  location     String
+  price        Float       @default(0)
+  purchaseDate DateTime    @map("purchase_date")
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+  logs         AssetLog[]
+
+  @@map("assets")
+}
+
+model AssetLog {
+  id         String   @id @default(uuid())
+  assetId    String   @map("asset_id")
+  asset      Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  userId     String   @map("user_id")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  actionType String   @map("action_type") // e.g., "CREATE", "UPDATE", "STATUS_CHANGE", "DELETE"
+  notes      String?
+  timestamp  DateTime @default(now())
+
+  @@map("asset_logs")
+}
