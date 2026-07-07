@@ -24,13 +24,12 @@ app.use(
   })
 );
 
-// 3. Global Rate Limiter untuk mencegah brute-force/DDoS sederhana
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 menit
-  max: 200, // Maksimal 200 request per IP per 15 menit
+  max: process.env.NODE_ENV === 'production' ? 200 : 10000, // Batas tinggi di development mode (10000), 200 di production
   message: {
     success: false,
-    message: 'Terlahu banyak request dari IP Anda, silakan coba lagi nanti.',
+    message: 'Terlalu banyak request dari IP Anda, silakan coba lagi nanti.',
   },
   standardHeaders: true,
   legacyHeaders: false,
