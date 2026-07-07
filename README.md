@@ -1,4 +1,4 @@
-# Project Document Collaboration ERP System
+# Project Document ERP System
 
 Sistem ERP berbasis web untuk kolaborasi dokumen proyek konstruksi (Gambar Teknis, BOQ, Penawaran, RFQ). Sistem ini mendukung folder penyimpanan fisik terisolasi untuk masing-masing user, otomatisasi parsing berkas Excel (BOQ, Penawaran, RFQ) langsung ke database PostgreSQL, revisi harga satuan BOQ oleh Procurement, pemantauan total anggaran oleh Finance, serta log audit dan pengawasan terpusat bagi Admin Monitoring dan Superadmin.
 
