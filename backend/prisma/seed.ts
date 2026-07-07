@@ -1,150 +1,81 @@
-import { PrismaClient, Role, AssetStatus } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Start seeding database...');
+  console.log('🌱 Start seeding project document database...');
 
   // 1. Bersihkan database terlebih dahulu
-  await prisma.assetLog.deleteMany({});
-  await prisma.asset.deleteMany({});
-  await prisma.category.deleteMany({});
+  await prisma.auditLog.deleteMany({});
+  await prisma.boqItem.deleteMany({});
+  await prisma.boqHeader.deleteMany({});
+  await prisma.penawaranItem.deleteMany({});
+  await prisma.penawaranHeader.deleteMany({});
+  await prisma.rfqItem.deleteMany({});
+  await prisma.rfqHeader.deleteMany({});
+  await prisma.document.deleteMany({});
+  await prisma.project.deleteMany({});
+  await prisma.userFolder.deleteMany({});
   await prisma.user.deleteMany({});
 
-  // 2. Buat Pengguna Default (Admin & Staff)
+  // 2. Buat Pengguna Default untuk masing-masing Role
   const salt = await bcrypt.genSalt(10);
-  const adminPasswordHash = await bcrypt.hash('admin123', salt);
-  const staffPasswordHash = await bcrypt.hash('staff123', salt);
+  const engPassword = await bcrypt.hash('eng123', salt);
+  const adminProyPassword = await bcrypt.hash('proyek123', salt);
+  const procPassword = await bcrypt.hash('proc123', salt);
+  const finPassword = await bcrypt.hash('fin123', salt);
+  const monPassword = await bcrypt.hash('mon123', salt);
+  const superPassword = await bcrypt.hash('super123', salt);
 
-  const admin = await prisma.user.create({
-    data: {
-      name: 'Administrator Utama',
-      email: 'admin@asset.com',
-      passwordHash: adminPasswordHash,
-      role: Role.ADMIN,
-    },
-  });
+  const usersData = [
+    { name: 'Staf Engineering', email: 'engineering@project.com', passwordHash: engPassword, role: Role.ENGINEERING },
+    { name: 'Staf Proyek Admin', email: 'proyekadmin@project.com', passwordHash: adminProyPassword, role: Role.PROYEK_ADMIN },
+    { name: 'Staf Procurement', email: 'procurement@project.com', passwordHash: procPassword, role: Role.PROCUREMENT },
+    { name: 'Staf Finance', email: 'finance@project.com', passwordHash: finPassword, role: Role.FINANCE },
+    { name: 'Admin Monitoring', email: 'adminmon@project.com', passwordHash: monPassword, role: Role.ADMIN_MONITORING },
+    { name: 'Super Administrator', email: 'superadmin@project.com', passwordHash: superPassword, role: Role.SUPERADMIN },
+  ];
 
-  const staff = await prisma.user.create({
-    data: {
-      name: 'Staf Inventori',
-      email: 'staff@asset.com',
-      passwordHash: staffPasswordHash,
-      role: Role.STAFF,
-    },
-  });
-
-  console.log('👤 Users created successfully!');
-
-  // 3. Buat Kategori Aset
-  const hardware = await prisma.category.create({
-    data: { name: 'Hardware', description: 'Perangkat keras fisik komputer dan jaringan' },
-  });
-
-  const software = await prisma.category.create({
-    data: { name: 'Software', description: 'Lisensi software dan langganan cloud SaaS' },
-  });
-
-  const furniture = await prisma.category.create({
-    data: { name: 'Furniture', description: 'Meja, kursi, lemari, dan kebutuhan interior kantor' },
-  });
-
-  console.log('🏷️  Categories created successfully!');
-
-  // 4. Buat Aset Contoh
-  const asset1 = await prisma.asset.create({
-    data: {
-      skuCode: 'HW-MACBOOK-001',
-      name: 'MacBook Pro M3 Max 16 inch',
-      categoryId: hardware.id,
-      status: AssetStatus.IN_USE,
-      location: 'R. Developer Lantai 2',
-      price: 45000000,
-      purchaseDate: new Date('2026-01-15T00:00:00.000Z'),
-    },
-  });
-
-  const asset2 = await prisma.asset.create({
-    data: {
-      skuCode: 'HW-THINKPAD-002',
-      name: 'Lenovo ThinkPad T14 Gen 4',
-      categoryId: hardware.id,
-      status: AssetStatus.AVAILABLE,
-      location: 'Gudang IT Lantai 3',
-      price: 18500000,
-      purchaseDate: new Date('2026-03-10T00:00:00.000Z'),
-    },
-  });
-
-  const asset3 = await prisma.asset.create({
-    data: {
-      skuCode: 'SW-OFFICE365-001',
-      name: 'Lisensi Microsoft Office 365 E5 50-Seat',
-      categoryId: software.id,
-      status: AssetStatus.IN_USE,
-      location: 'Cloud / Server Utama',
-      price: 12000000,
-      purchaseDate: new Date('2026-02-01T00:00:00.000Z'),
-    },
-  });
-
-  const asset4 = await prisma.asset.create({
-    data: {
-      skuCode: 'FN-CHAIR-045',
-      name: 'Kursi Ergonomis Jaring Hitam',
-      categoryId: furniture.id,
-      status: AssetStatus.MAINTENANCE,
-      location: 'Ruang Meeting A',
-      price: 2500000,
-      purchaseDate: new Date('2025-11-20T00:00:00.000Z'),
-    },
-  });
-
-  console.log('📦 Assets created successfully!');
-
-  // 5. Buat Logs Aktivitas Awal
-  await prisma.assetLog.createMany({
-    data: [
-      {
-        assetId: asset1.id,
-        userId: admin.id,
-        actionType: 'CREATE',
-        notes: 'Aset pertama kali didaftarkan dengan status IN_USE',
-        timestamp: new Date('2026-01-15T09:00:00.000Z'),
+  const createdUsers = [];
+  for (const u of usersData) {
+    const user = await prisma.user.create({
+      data: {
+        name: u.name,
+        email: u.email,
+        passwordHash: u.passwordHash,
+        role: u.role,
       },
-      {
-        assetId: asset2.id,
-        userId: admin.id,
-        actionType: 'CREATE',
-        notes: 'Aset pertama kali didaftarkan dengan status AVAILABLE',
-        timestamp: new Date('2026-03-10T10:00:00.000Z'),
+    });
+    createdUsers.push(user);
+    
+    // Buat Folder Fisik Representasi di DB untuk masing-masing user
+    await prisma.userFolder.create({
+      data: {
+        userId: user.id,
+        folderPath: `storage/uploads/users/${user.id}`,
       },
-      {
-        assetId: asset3.id,
-        userId: admin.id,
-        actionType: 'CREATE',
-        notes: 'Aset pertama kali didaftarkan dengan status IN_USE',
-        timestamp: new Date('2026-02-01T08:30:00.000Z'),
-      },
-      {
-        assetId: asset4.id,
-        userId: admin.id,
-        actionType: 'CREATE',
-        notes: 'Aset pertama kali didaftarkan',
-        timestamp: new Date('2025-11-20T14:00:00.000Z'),
-      },
-      {
-        assetId: asset4.id,
-        userId: staff.id,
-        actionType: 'STATUS_CHANGE',
-        notes: 'Status diubah dari AVAILABLE menjadi MAINTENANCE karena roda kursi patah',
-        timestamp: new Date('2026-05-12T11:15:00.000Z'),
-      },
-    ],
+    });
+  }
+
+  console.log('👤 6 Users and folders created successfully!');
+
+  // 3. Buat Proyek Contoh
+  await prisma.project.create({
+    data: {
+      name: 'Pembangunan Pusat Data Nasional',
+      description: 'Proyek strategis pembangunan pusat data nasional berskala tinggi.',
+    },
   });
 
-  console.log('📝 Initial log activities created!');
+  await prisma.project.create({
+    data: {
+      name: 'Renovasi Infrastruktur Kantor IT',
+      description: 'Proyek renovasi dan modernisasi infrastruktur jaringan dan ruang kerja.',
+    },
+  });
+
+  console.log('🏗️  Projects created successfully!');
   console.log('✨ Seeding completed successfully!');
 }
 

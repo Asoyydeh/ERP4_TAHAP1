@@ -23,6 +23,6 @@ const loginLimiter = rateLimit({
 authRouter.post('/register', validateBody(registerSchema), AuthController.register);
 authRouter.post('/login', loginLimiter, validateBody(loginSchema), AuthController.login);
 authRouter.get('/me', authenticate, AuthController.me);
-authRouter.get('/users', authenticate, authorize([Role.ADMIN]), AuthController.getAllUsers);
+authRouter.get('/users', authenticate, authorize([Role.SUPERADMIN]), AuthController.getAllUsers);
 
 export default authRouter;

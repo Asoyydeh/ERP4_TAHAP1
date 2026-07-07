@@ -38,13 +38,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const menuItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Daftar Aset', path: '/assets', icon: Package },
-    { name: 'Kategori', path: '/categories', icon: Tags },
-    { name: 'Riwayat Audit', path: '/logs', icon: History },
+    { name: 'Dokumen Proyek', path: '/assets', icon: Package },
+    { name: 'Daftar Proyek', path: '/categories', icon: Tags },
+    { name: 'Log Audit', path: '/logs', icon: History },
   ];
 
-  // Tambahkan menu manajemen user jika Admin
-  if (isAdmin) {
+  // Tambahkan menu manajemen user jika Superadmin
+  if (user.role === 'SUPERADMIN') {
     menuItems.push({ name: 'Kelola Staf', path: '/users', icon: Users });
   }
 
@@ -58,7 +58,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-md">
               <ShieldCheck className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold text-slate-800 tracking-tight">AssetControl</span>
+            <span className="text-lg font-bold text-slate-800 tracking-tight">ProyekDoc</span>
           </div>
 
           {/* User Profile Summary */}
@@ -67,7 +67,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pengguna</p>
               <h4 className="text-sm font-bold text-slate-700 mt-1 truncate">{user.name}</h4>
               <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold mt-2 ${
-                isAdmin ? 'bg-sky-100 text-sky-800' : 'bg-emerald-100 text-emerald-800'
+                user.role === 'SUPERADMIN' ? 'bg-rose-100 text-rose-800' :
+                user.role === 'ADMIN_MONITORING' ? 'bg-amber-100 text-amber-800' :
+                'bg-sky-100 text-sky-800'
               }`}>
                 {user.role}
               </span>

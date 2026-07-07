@@ -12,6 +12,12 @@ interface AuthContextType {
   login: (email: string, passwordHash: string) => Promise<void>;
   logout: () => void;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
+  isAdminMonitoring: boolean;
+  isEngineering: boolean;
+  isProyekAdmin: boolean;
+  isProcurement: boolean;
+  isFinance: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -61,10 +67,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     router.push('/login');
   };
 
-  const isAdmin = user?.role === 'ADMIN';
+  const isSuperAdmin = user?.role === 'SUPERADMIN';
+  const isAdminMonitoring = user?.role === 'ADMIN_MONITORING';
+  const isEngineering = user?.role === 'ENGINEERING';
+  const isProyekAdmin = user?.role === 'PROYEK_ADMIN';
+  const isProcurement = user?.role === 'PROCUREMENT';
+  const isFinance = user?.role === 'FINANCE';
+  const isAdmin = isSuperAdmin || isAdminMonitoring;
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        isAdmin,
+        isSuperAdmin,
+        isAdminMonitoring,
+        isEngineering,
+        isProyekAdmin,
+        isProcurement,
+        isFinance,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

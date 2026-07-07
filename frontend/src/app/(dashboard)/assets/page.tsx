@@ -2,548 +2,448 @@
 
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { Asset, Category, AssetStatus, AssetLog } from '@/types';
+import { Document, Project, BoqHeader, PenawaranHeader, RfqHeader } from '@/types';
 import { useAuth } from '@/lib/AuthContext';
 import { 
-  Plus, 
-  Pencil, 
+  Search, 
+  Download, 
   Trash2, 
-  Loader2, 
-  X,
-  Search,
-  RefreshCw,
-  AlertTriangle,
-  History
+  Eye, 
+  RefreshCw, 
+  FileSpreadsheet, 
+  FileText, 
+  Image, 
+  FileCheck,
+  X
 } from 'lucide-react';
 
-export default function AssetsPage() {
-  const { user, isAdmin } = useAuth();
-  const [assets, setAssets] = useState<Asset[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function DocumentsPage() {
+  const { user } = useAuth();
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // States Pencarian & Filter
   const [search, setSearch] = useState('');
-  const [filterCategory, setFilterCategory] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterProject, setFilterProject] = useState('');
+  const [filterType, setFilterType] = useState('');
 
-  // States Modal Form Aset
-  const [formOpen, setFormOpen] = useState(false);
-  const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
-  const [currentAssetId, setCurrentAssetId] = useState<string | null>(null);
-  const [formError, setFormError] = useState<string | null>(null);
-  const [formSubmitting, setFormSubmitting] = useState(false);
+  // States Detail Modals
+  const [selectedDoc, setSelectedDoc] = useState<Document | null>(null);
+  const [boqDetails, setBoqDetails] = useState<BoqHeader | null>(null);
+  const [penawaranDetails, setPenawaranDetails] = useState<PenawaranHeader | null>(null);
+  const [rfqDetails, setRfqDetails] = useState<RfqHeader | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // Form Fields
-  const [skuCode, setSkuCode] = useState('');
-  const [name, setName] = useState('');
-  const [categoryId, setCategoryId] = useState('');
-  const [status, setStatus] = useState<AssetStatus>('AVAILABLE');
-  const [location, setLocation] = useState('');
-  const [price, setPrice] = useState(0);
-  const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().substring(0, 10));
-
-  // States Modal Log Audit Aset
-  const [logOpen, setLogOpen] = useState(false);
-  const [selectedAssetLogs, setSelectedAssetLogs] = useState<AssetLog[]>([]);
-  const [selectedAssetName, setSelectedAssetName] = useState('');
-  const [selectedAssetSku, setSelectedAssetSku] = useState('');
-  const [loadingLogs, setLoadingLogs] = useState(false);
-
-  const fetchAssetsAndCategories = async () => {
+  const fetchDocsAndProjects = async () => {
     setLoading(true);
     setError(null);
     try {
-      const [assetsRes, categoriesRes] = await Promise.all([
-        api.get('/assets', {
-          params: {
-            search: search || undefined,
-            categoryId: filterCategory || undefined,
-            status: filterStatus || undefined,
-          }
-        }),
-        api.get('/categories'),
+      const [docsRes, projRes] = await Promise.all([
+        api.get('/documents'),
+        api.get('/projects'),
       ]);
-      setAssets(assetsRes.data.data);
-      setCategories(categoriesRes.data.data);
+      setDocuments(docsRes.data.data);
+      setProjects(projRes.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mengambil data aset.');
+      setError(err.response?.data?.message || 'Gagal mengambil data dokumen.');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAssetsAndCategories();
-  }, [search, filterCategory, filterStatus]);
+    fetchDocsAndProjects();
+  }, []);
 
-  const openCreateForm = () => {
-    setFormMode('create');
-    setSkuCode('');
-    setName('');
-    setCategoryId(categories[0]?.id || '');
-    setStatus('AVAILABLE');
-    setLocation('');
-    setPrice(0);
-    setPurchaseDate(new Date().toISOString().substring(0, 10));
-    setFormError(null);
-    setFormOpen(true);
-  };
-
-  const openEditForm = (asset: Asset) => {
-    setFormMode('edit');
-    setCurrentAssetId(asset.id);
-    setSkuCode(asset.skuCode);
-    setName(asset.name);
-    setCategoryId(asset.categoryId);
-    setStatus(asset.status);
-    setLocation(asset.location);
-    setPrice(asset.price);
-    setPurchaseDate(new Date(asset.purchaseDate).toISOString().substring(0, 10));
-    setFormError(null);
-    setFormOpen(true);
-  };
-
-  const openLogsModal = async (asset: Asset) => {
-    setSelectedAssetName(asset.name);
-    setSelectedAssetSku(asset.skuCode);
-    setLoadingLogs(true);
-    setLogOpen(true);
+  const handleDownload = async (doc: Document) => {
     try {
-      const response = await api.get(`/assets/${asset.id}`);
-      setSelectedAssetLogs(response.data.data.logs || []);
+      const response = await api.get(`/documents/download/${doc.id}`, {
+        responseType: 'blob',
+      });
+      const file = new Blob([response.data], { type: 'application/octet-stream' });
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.setAttribute('download', doc.fileName);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     } catch (err) {
-      alert('Gagal mengambil logs aset');
-      setLogOpen(false);
-    } finally {
-      setLoadingLogs(false);
+      alert('Gagal mengunduh berkas.');
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormSubmitting(true);
-    setFormError(null);
-
-    const payload = {
-      name,
-      skuCode,
-      categoryId,
-      status,
-      location,
-      price: Number(price),
-      purchaseDate: new Date(purchaseDate).toISOString(),
-    };
-
-    try {
-      if (formMode === 'create') {
-        await api.post('/assets', payload);
-      } else {
-        // Jika STAFF, batasi payload di frontend hanya status & location
-        const updatePayload = isAdmin ? payload : { status, location };
-        await api.put(`/assets/${currentAssetId}`, updatePayload);
-      }
-      setFormOpen(false);
-      fetchAssetsAndCategories();
-    } catch (err: any) {
-      setFormError(err.response?.data?.message || 'Gagal menyimpan aset.');
-    } finally {
-      setFormSubmitting(false);
-    }
-  };
-
-  const handleDelete = async (id: string, assetName: string) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus aset "${assetName}"? Seluruh log audit terkait aset ini akan dihapus permanen.`)) {
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Hapus berkas "${name}"? Tindakan ini permanen.`)) {
       return;
     }
+    try {
+      await api.delete(`/documents/${id}`);
+      fetchDocsAndProjects();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Gagal menghapus dokumen.');
+    }
+  };
+
+  const handleOpenDetails = async (doc: Document) => {
+    setSelectedDoc(doc);
+    setLoadingDetails(true);
+    setBoqDetails(null);
+    setPenawaranDetails(null);
+    setRfqDetails(null);
 
     try {
-      await api.delete(`/assets/${id}`);
-      fetchAssetsAndCategories();
+      if (doc.fileType === 'BOQ') {
+        const res = await api.get(`/documents/boq/${doc.id}`);
+        setBoqDetails(res.data.data);
+      } else if (doc.fileType === 'PENAWARAN') {
+        const res = await api.get(`/documents/penawaran/${doc.id}`);
+        setPenawaranDetails(res.data.data);
+      } else if (doc.fileType === 'RFQ') {
+        const res = await api.get(`/documents/rfq/${doc.id}`);
+        setRfqDetails(res.data.data);
+      }
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Gagal menghapus aset.');
+      alert(err.response?.data?.message || 'Gagal mengambil rincian berkas.');
+      setSelectedDoc(null);
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
-  const getStatusBadge = (status: AssetStatus) => {
-    switch (status) {
-      case 'AVAILABLE':
-        return 'bg-sky-50 text-sky-700 border-sky-100';
-      case 'IN_USE':
-        return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'MAINTENANCE':
-        return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'RETIRED':
-        return 'bg-slate-50 text-slate-700 border-slate-100';
-    }
-  };
-
-  const translateStatus = (status: AssetStatus) => {
-    switch (status) {
-      case 'AVAILABLE': return 'Tersedia';
-      case 'IN_USE': return 'Digunakan';
-      case 'MAINTENANCE': return 'Pemeliharaan';
-      case 'RETIRED': return 'Diarsipkan';
-    }
-  };
+  // Filtered List
+  const filteredDocuments = documents.filter((doc) => {
+    const matchSearch = doc.fileName.toLowerCase().includes(search.toLowerCase()) ||
+                        doc.uploadedBy?.name.toLowerCase().includes(search.toLowerCase());
+    const matchProj = filterProject ? doc.projectId === filterProject : true;
+    const matchType = filterType ? doc.fileType === filterType : true;
+    return matchSearch && matchProj && matchType;
+  });
 
   return (
     <div className="space-y-6">
-      {/* Top Header Actions */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Manajemen Aset</h2>
-          <p className="text-xs text-slate-500 mt-1">Daftar inventori barang, lokasi, status operasional, dan nilai penyusutan aset.</p>
+          <h2 className="text-xl font-bold text-slate-800">Penjelajah Dokumen Proyek</h2>
+          <p className="text-xs text-slate-500 mt-1">Daftar semua dokumen proyek yang diunggah oleh Engineering beserta data detail terurai.</p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={openCreateForm}
-            className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-600/20 transition-all"
-          >
-            <Plus className="mr-1.5 h-4 w-4" />
-            Daftarkan Aset
-          </button>
-        )}
+        <button
+          onClick={fetchDocsAndProjects}
+          className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-xs transition-all"
+        >
+          <RefreshCw className="mr-1.5 h-4 w-4" />
+          Refresh
+        </button>
       </div>
 
       {/* Filter and Search Controls */}
       <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-3">
-        {/* Search */}
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari SKU, nama aset, lokasi..."
+            placeholder="Cari nama berkas, uploader..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 pl-10 pr-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm"
           />
         </div>
 
-        {/* Category Filter */}
-        <div className="w-full md:w-48">
+        <div className="w-full md:w-56">
           <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm cursor-pointer"
+            value={filterProject}
+            onChange={(e) => setFilterProject(e.target.value)}
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none text-sm cursor-pointer"
           >
-            <option value="">Semua Kategori</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
+            <option value="">Semua Proyek</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
             ))}
           </select>
         </div>
 
-        {/* Status Filter */}
-        <div className="w-full md:w-44">
+        <div className="w-full md:w-48">
           <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm cursor-pointer"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none text-sm cursor-pointer"
           >
-            <option value="">Semua Status</option>
-            <option value="AVAILABLE">Tersedia</option>
-            <option value="IN_USE">Digunakan</option>
-            <option value="MAINTENANCE">Pemeliharaan</option>
-            <option value="RETIRED">Diarsipkan</option>
+            <option value="">Semua Tipe Dokumen</option>
+            <option value="GAMBAR">Gambar Proyek</option>
+            <option value="BOQ">BOQ (Bill of Quantity)</option>
+            <option value="PENAWARAN">Penawaran Vendor</option>
+            <option value="RFQ">RFQ (Request for Quotation)</option>
           </select>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-xl bg-rose-50 border border-rose-100 p-6 text-center">
-          <p className="text-sm font-semibold text-rose-800">{error}</p>
-          <button
-            onClick={fetchAssetsAndCategories}
-            className="mt-4 inline-flex items-center px-4 py-2 text-xs font-semibold bg-white border border-rose-200 text-rose-700 rounded-xl hover:bg-rose-50 transition-all shadow-sm"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Coba Lagi
-          </button>
+        <div className="rounded-xl bg-rose-50 border border-rose-100 p-6 text-center text-sm font-semibold text-rose-800">
+          {error}
         </div>
       )}
 
-      {/* Assets Table */}
+      {/* Documents Table */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          {assets.length > 0 ? (
+          {filteredDocuments.length > 0 ? (
             <table className="min-w-full divide-y divide-slate-100">
               <thead>
                 <tr className="text-left text-2xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/50">
-                  <th className="py-3 px-6 rounded-l-lg">Kode SKU / Aset</th>
-                  <th className="py-3 px-6">Kategori</th>
-                  <th className="py-3 px-6">Status</th>
-                  <th className="py-3 px-6">Lokasi</th>
-                  <th className="py-3 px-6">Nilai Beli</th>
-                  <th className="py-3 px-6">Tanggal Beli</th>
-                  <th className="py-3 px-6 text-right rounded-r-lg">Aksi</th>
+                  <th className="py-3.5 px-6 rounded-l-lg">Nama Dokumen</th>
+                  <th className="py-3.5 px-6">Proyek</th>
+                  <th className="py-3.5 px-6">Tipe Dokumen</th>
+                  <th className="py-3.5 px-6">Diunggah Oleh</th>
+                  <th className="py-3.5 px-6">Ukuran</th>
+                  <th className="py-3.5 px-6">Status Dokumen</th>
+                  <th className="py-3.5 px-6 text-right rounded-r-lg">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
-                {assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-slate-50/30 transition-all">
-                    {/* SKU & Name */}
-                    <td className="py-4 px-6 font-semibold text-slate-800">
-                      <div>
-                        <span className="text-slate-800">{asset.name}</span>
-                        <span className="font-mono text-2xs text-slate-400 block mt-0.5">{asset.skuCode}</span>
-                      </div>
-                    </td>
-                    {/* Category */}
-                    <td className="py-4 px-6 text-slate-500">{asset.category?.name}</td>
-                    {/* Status Badge */}
-                    <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border ${getStatusBadge(asset.status)}`}>
-                        {translateStatus(asset.status)}
-                      </span>
-                    </td>
-                    {/* Location */}
-                    <td className="py-4 px-6 text-slate-500">{asset.location}</td>
-                    {/* Price */}
-                    <td className="py-4 px-6 font-semibold text-slate-700">
-                      Rp {asset.price.toLocaleString('id-ID')}
-                    </td>
-                    {/* Purchase Date */}
-                    <td className="py-4 px-6 text-slate-400 text-xs">
-                      {new Date(asset.purchaseDate).toLocaleDateString('id-ID')}
-                    </td>
-                    {/* Actions */}
-                    <td className="py-4 px-6 text-right space-x-1 whitespace-nowrap">
-                      <button
-                        onClick={() => openLogsModal(asset)}
-                        className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-all shadow-2xs"
-                        title="Riwayat Audit Aset"
-                      >
-                        <History className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => openEditForm(asset)}
-                        className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-all shadow-2xs"
-                        title={isAdmin ? "Edit Aset" : "Update Status"}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                      {isAdmin && (
+                {filteredDocuments.map((doc) => {
+                  const isOwner = doc.uploadedById === user?.id;
+                  const canDelete = user?.role === 'SUPERADMIN' || isOwner;
+                  const isExcel = doc.fileName.endsWith('.xlsx') || doc.fileName.endsWith('.xls');
+                  const hasDetails = isExcel && (doc.fileType === 'BOQ' || doc.fileType === 'PENAWARAN' || doc.fileType === 'RFQ');
+
+                  return (
+                    <tr key={doc.id} className="hover:bg-slate-50/30 transition-all">
+                      <td className="py-4 px-6 font-semibold text-slate-800 flex items-center space-x-2.5">
+                        {doc.fileType === 'GAMBAR' && <Image className="h-5 w-5 text-sky-500 shrink-0" />}
+                        {doc.fileType === 'BOQ' && <FileSpreadsheet className="h-5 w-5 text-emerald-600 shrink-0" />}
+                        {doc.fileType === 'PENAWARAN' && <FileCheck className="h-5 w-5 text-purple-600 shrink-0" />}
+                        {doc.fileType === 'RFQ' && <FileText className="h-5 w-5 text-amber-500 shrink-0" />}
+                        <span className="truncate max-w-[200px]" title={doc.fileName}>{doc.fileName}</span>
+                      </td>
+                      <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
+                      <td className="py-4 px-6">
+                        <span className="font-bold text-xs">{doc.fileType}</span>
+                      </td>
+                      <td className="py-4 px-6">
+                        <div>
+                          <span className="font-medium text-slate-700">{doc.uploadedBy?.name}</span>
+                          <span className="block text-3xs text-slate-400 font-mono mt-0.5">{doc.uploadedBy?.role}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-6 text-slate-400 text-xs">{(doc.fileSize / 1024).toFixed(1)} KB</td>
+                      <td className="py-4 px-6">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold ${
+                          doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' :
+                          doc.status === 'REVISED_BY_PROCUREMENT' ? 'bg-amber-50 text-amber-700' :
+                          'bg-slate-50 text-slate-700'
+                        }`}>
+                          {doc.status.replace(/_/g, ' ')}
+                        </span>
+                      </td>
+                      <td className="py-4 px-6 text-right space-x-1 whitespace-nowrap">
+                        {hasDetails && (
+                          <button
+                            onClick={() => handleOpenDetails(doc)}
+                            className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-sky-600 hover:text-sky-700 transition-all shadow-2xs"
+                            title="Buka Detail Rincian Excel"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </button>
+                        )}
                         <button
-                          onClick={() => handleDelete(asset.id, asset.name)}
-                          className="inline-flex p-1.5 rounded-lg border border-rose-100 bg-rose-50/50 hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-all shadow-2xs"
-                          title="Hapus Aset"
+                          onClick={() => handleDownload(doc)}
+                          className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-all shadow-2xs"
+                          title="Unduh Berkas Asli"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Download className="h-4 w-4" />
                         </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(doc.id, doc.fileName)}
+                            className="inline-flex p-1.5 rounded-lg border border-rose-100 bg-rose-50/50 hover:bg-rose-50 text-rose-500 hover:text-rose-600 transition-all shadow-2xs"
+                            title="Hapus Dokumen"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           ) : (
             <div className="py-16 text-center text-sm text-slate-400">
-              {loading ? 'Sedang mengambil data...' : 'Aset tidak ditemukan atau belum didaftarkan.'}
+              {loading ? 'Sedang mengambil data...' : 'Belum ada berkas proyek terdaftar.'}
             </div>
           )}
         </div>
       </div>
 
-      {/* MODAL FORM ASET */}
-      {formOpen && (
+      {/* DETAIL MODAL PANELS */}
+      {selectedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150 overflow-y-auto max-h-[90vh]">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
-              <h3 className="text-base font-bold text-slate-800">
-                {formMode === 'create' ? 'Daftarkan Aset Baru' : (isAdmin ? 'Edit Detail Aset' : 'Update Status Operasional')}
-              </h3>
-              <button onClick={() => setFormOpen(false)} className="text-slate-400 hover:text-slate-600">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            {formError && (
-              <div className="my-4 rounded-lg bg-rose-50 p-3 border border-rose-100">
-                <p className="text-xs text-rose-800 font-semibold">{formError}</p>
-              </div>
-            )}
-
-            {!isAdmin && formMode === 'edit' && (
-              <div className="my-3 rounded-lg bg-amber-50 p-3 border border-amber-100 text-xs text-amber-800 flex items-start gap-1.5">
-                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
-                <span>Sebagai <b>Staff</b>, Anda hanya diizinkan memperbarui status operasional dan lokasi aset untuk log perbaikan/peminjaman.</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* SKU Code (Hanya Admin / Create) */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Kode SKU / Serial Number</label>
-                  <input
-                    type="text"
-                    required
-                    disabled={!isAdmin && formMode === 'edit'}
-                    value={skuCode}
-                    onChange={(e) => setSkuCode(e.target.value)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm disabled:opacity-60"
-                    placeholder="Contoh: HW-MACBOOK-001"
-                  />
-                </div>
-
-                {/* Name */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Nama Aset</label>
-                  <input
-                    type="text"
-                    required
-                    disabled={!isAdmin && formMode === 'edit'}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm disabled:opacity-60"
-                    placeholder="Contoh: MacBook Pro M3 16 inch"
-                  />
-                </div>
-
-                {/* Category Selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Kategori</label>
-                  <select
-                    disabled={!isAdmin && formMode === 'edit'}
-                    value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm disabled:opacity-60 cursor-pointer"
-                  >
-                    {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Status Selection */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Status Operasional</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as AssetStatus)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm cursor-pointer"
-                  >
-                    <option value="AVAILABLE">Tersedia / Ready</option>
-                    <option value="IN_USE">Sedang Digunakan</option>
-                    <option value="MAINTENANCE">Dalam Perbaikan</option>
-                    <option value="RETIRED">Diarsipkan / Rusak</option>
-                  </select>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Lokasi Penyimpanan</label>
-                  <input
-                    type="text"
-                    required
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm"
-                    placeholder="Contoh: Ruang Server, R. IT Lantai 3"
-                  />
-                </div>
-
-                {/* Price (Hanya Admin / Create) */}
-                <div>
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Nilai Beli (Rp)</label>
-                  <input
-                    type="number"
-                    required
-                    disabled={!isAdmin && formMode === 'edit'}
-                    value={price}
-                    onChange={(e) => setPrice(Number(e.target.value))}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm disabled:opacity-60"
-                    placeholder="25000000"
-                  />
-                </div>
-
-                {/* Purchase Date */}
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">Tanggal Pembelian</label>
-                  <input
-                    type="date"
-                    required
-                    disabled={!isAdmin && formMode === 'edit'}
-                    value={purchaseDate}
-                    onChange={(e) => setPurchaseDate(e.target.value)}
-                    className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-4 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm disabled:opacity-60 cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setFormOpen(false)}
-                  className="px-4 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={formSubmitting}
-                  className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl transition-all disabled:opacity-50"
-                >
-                  {formSubmitting && <Loader2 className="mr-1.5 h-4.5 w-4.5 animate-spin" />}
-                  Simpan Aset
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL LOG AUDIT ASET */}
-      {logOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[85vh]">
-            <div className="flex justify-between items-center pb-4 border-b border-slate-100">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-start pb-4 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-slate-800">{selectedAssetName}</h3>
-                <p className="text-3xs text-slate-400 font-mono mt-0.5">{selectedAssetSku}</p>
+                <h3 className="text-base font-bold text-slate-800">Rincian Data: {selectedDoc.fileName}</h3>
+                <p className="text-3xs text-slate-400 mt-1">Tipe: <span className="font-bold">{selectedDoc.fileType}</span> | Proyek: {selectedDoc.project?.name}</p>
               </div>
-              <button onClick={() => setLogOpen(false)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedDoc(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4 space-y-4 pr-1">
-              {loadingLogs ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-sky-600" />
-                </div>
-              ) : selectedAssetLogs.length > 0 ? (
-                <div className="relative border-l border-slate-100 pl-4 ml-2 space-y-5">
-                  {selectedAssetLogs.map((log) => (
-                    <div key={log.id} className="relative">
-                      {/* Bullet node on timeline */}
-                      <span className="absolute -left-[21px] top-1 flex h-2 w-2 rounded-full bg-sky-500 ring-4 ring-white" />
-                      
-                      <div className="text-3xs text-slate-400 font-semibold">
-                        {new Date(log.timestamp).toLocaleString('id-ID')}
+            <div className="flex-1 overflow-y-auto py-4 space-y-4 text-xs pr-1">
+              {loadingDetails ? (
+                <div className="py-12 flex justify-center"><RefreshCw className="animate-spin text-sky-500 h-6 w-6" /></div>
+              ) : (
+                <>
+                  {/* BOQ RENDER */}
+                  {boqDetails && (
+                    <div className="space-y-4">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center">
+                        <div>
+                          <p className="text-slate-400 font-semibold">Total Anggaran BOQ:</p>
+                          <h4 className="text-lg font-bold text-slate-800 mt-1">Rp {boqDetails.totalAmount.toLocaleString('id-ID')}</h4>
+                        </div>
+                        <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold">BOQ Sheet</span>
                       </div>
-                      <div className="text-xs font-bold text-slate-700 mt-1">
-                        Aktivitas: <span className="text-sky-600 font-semibold">{log.actionType}</span>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-0.5 italic">{log.notes || 'Perubahan data'}</p>
-                      <div className="text-3xs text-slate-400 mt-1">
-                        Eksekutor: <span className="font-semibold">{log.user?.name || 'Sistem'}</span>
+                      <div className="border border-slate-100 rounded-xl overflow-hidden">
+                        <table className="min-w-full divide-y divide-slate-100 text-left">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
+                            <tr>
+                              <th className="py-2.5 px-4">Kode WBS</th>
+                              <th className="py-2.5 px-4">Deskripsi Pekerjaan</th>
+                              <th className="py-2.5 px-4 text-center">Qty / Satuan</th>
+                              <th className="py-2.5 px-4 text-right">Harga (Eng)</th>
+                              <th className="py-2.5 px-4 text-right">Harga (Proc)</th>
+                              <th className="py-2.5 px-4 text-right">Total Sub</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
+                            {boqDetails.items?.map((item) => (
+                              <tr key={item.id} className="hover:bg-slate-50/10">
+                                <td className="py-2.5 px-4 font-mono">{item.wbsCode || '-'}</td>
+                                <td className="py-2.5 px-4 font-medium text-slate-700">{item.description}</td>
+                                <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
+                                <td className="py-2.5 px-4 text-right">Rp {item.rateEngineering.toLocaleString('id-ID')}</td>
+                                <td className="py-2.5 px-4 text-right text-sky-600 font-bold">Rp {item.rateProcurement.toLocaleString('id-ID')}</td>
+                                <td className="py-2.5 px-4 text-right font-bold text-slate-800">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400 text-center py-6">Belum ada riwayat aktivitas tercatat.</p>
+                  )}
+
+                  {/* PENAWARAN RENDER */}
+                  {penawaranDetails && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                          <p className="text-slate-400 font-semibold">Nama Vendor:</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{penawaranDetails.vendorName}</h4>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 font-semibold">Nomor Penawaran:</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{penawaranDetails.quoteNumber || '-'}</h4>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 font-semibold">Total Nilai Penawaran:</p>
+                          <h4 className="font-bold text-purple-700 mt-0.5 text-sm">Rp {penawaranDetails.totalOffer.toLocaleString('id-ID')}</h4>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 font-semibold">Masa Berlaku:</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">
+                            {penawaranDetails.validityDate ? new Date(penawaranDetails.validityDate).toLocaleDateString('id-ID') : '-'}
+                          </h4>
+                        </div>
+                      </div>
+                      <div className="border border-slate-100 rounded-xl overflow-hidden">
+                        <table className="min-w-full divide-y divide-slate-100 text-left">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
+                            <tr>
+                              <th className="py-2.5 px-4">No</th>
+                              <th className="py-2.5 px-4">Nama Barang / Deskripsi</th>
+                              <th className="py-2.5 px-4 text-center">Qty / Satuan</th>
+                              <th className="py-2.5 px-4 text-right">Harga Satuan</th>
+                              <th className="py-2.5 px-4 text-right">Total Sub</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
+                            {penawaranDetails.items?.map((item) => (
+                              <tr key={item.id} className="hover:bg-slate-50/10">
+                                <td className="py-2.5 px-4 font-mono">{item.itemNo}</td>
+                                <td className="py-2.5 px-4 font-semibold text-slate-700">{item.description}</td>
+                                <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
+                                <td className="py-2.5 px-4 text-right">Rp {item.unitPrice.toLocaleString('id-ID')}</td>
+                                <td className="py-2.5 px-4 text-right font-bold text-slate-800">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* RFQ RENDER */}
+                  {rfqDetails && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div>
+                          <p className="text-slate-400 font-semibold">Nomor RFQ:</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{rfqDetails.rfqNumber}</h4>
+                        </div>
+                        <div>
+                          <p className="text-slate-400 font-semibold">Batas Target Tanggal:</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">
+                            {rfqDetails.targetDate ? new Date(rfqDetails.targetDate).toLocaleDateString('id-ID') : '-'}
+                          </h4>
+                        </div>
+                        <div className="col-span-2">
+                          <p className="text-slate-400 font-semibold">Ketentuan Serah Terima & Syarat Pembayaran (Terms):</p>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{rfqDetails.terms || '-'}</h4>
+                        </div>
+                      </div>
+                      <div className="border border-slate-100 rounded-xl overflow-hidden">
+                        <table className="min-w-full divide-y divide-slate-100 text-left">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
+                            <tr>
+                              <th className="py-2.5 px-4">No</th>
+                              <th className="py-2.5 px-4">Nama Barang / Deskripsi</th>
+                              <th className="py-2.5 px-4 text-center">Qty / Satuan</th>
+                              <th className="py-2.5 px-4">Spesifikasi Detail</th>
+                              <th className="py-2.5 px-4">Catatan</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
+                            {rfqDetails.items?.map((item) => (
+                              <tr key={item.id} className="hover:bg-slate-50/10">
+                                <td className="py-2.5 px-4 font-mono">{item.itemNo}</td>
+                                <td className="py-2.5 px-4 font-semibold text-slate-700">{item.description}</td>
+                                <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
+                                <td className="py-2.5 px-4 text-slate-500">{item.specifications || '-'}</td>
+                                <td className="py-2.5 px-4 italic text-slate-400">{item.notes || '-'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex justify-end">
+            <div className="pt-4 border-t border-slate-100 flex justify-end space-x-2 text-xs">
               <button
-                type="button"
-                onClick={() => setLogOpen(false)}
-                className="px-4 py-2 text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-all"
+                onClick={() => handleDownload(selectedDoc)}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg font-semibold"
+              >
+                Unduh Berkas Excel Fisik
+              </button>
+              <button
+                onClick={() => setSelectedDoc(null)}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
               >
                 Tutup
               </button>

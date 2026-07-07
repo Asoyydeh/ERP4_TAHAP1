@@ -35,7 +35,7 @@ export class AuthService {
         name: data.name,
         email: data.email,
         passwordHash: passwordHash,
-        role: data.role || Role.STAFF,
+        role: data.role || Role.ENGINEERING,
       },
       select: {
         id: true,

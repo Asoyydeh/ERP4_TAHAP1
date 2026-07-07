@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import api from '@/lib/api';
-import { User } from '@/types';
+import { User, Role } from '@/types';
 import { useAuth } from '@/lib/AuthContext';
 import { 
   Plus, 
@@ -12,13 +12,11 @@ import {
   RefreshCw,
   Mail,
   ShieldCheck,
-  Lock,
-  UserCheck,
   ShieldAlert
 } from 'lucide-react';
 
 export default function UsersPage() {
-  const { isAdmin } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,19 +26,19 @@ export default function UsersPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'ADMIN' | 'STAFF'>('STAFF');
+  const [role, setRole] = useState<Role>('ENGINEERING');
   const [formSubmitting, setFormSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   const fetchUsers = async () => {
-    if (!isAdmin) return;
+    if (!isSuperAdmin) return;
     setLoading(true);
     setError(null);
     try {
       const response = await api.get('/auth/users');
       setUsers(response.data.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Gagal mengambil data user/staf.');
+      setError(err.response?.data?.message || 'Gagal mengambil data pengguna.');
     } finally {
       setLoading(false);
     }
@@ -48,10 +46,10 @@ export default function UsersPage() {
 
   useEffect(() => {
     fetchUsers();
-  }, [isAdmin]);
+  }, [isSuperAdmin]);
 
-  // Proteksi Tampilan Client jika Staff memaksa akses URL
-  if (!isAdmin) {
+  // Proteksi Tampilan Client jika user selain Superadmin memaksa akses URL
+  if (!isSuperAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center max-w-md mx-auto">
         <div className="p-4 rounded-full bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
@@ -59,7 +57,7 @@ export default function UsersPage() {
         </div>
         <h3 className="text-lg font-bold text-slate-800">Akses Ditolak</h3>
         <p className="text-xs text-slate-500 mt-2">
-          Maaf, halaman manajemen pengguna hanya dapat diakses oleh Administrator dengan kredensial Admin penuh.
+          Maaf, halaman manajemen pengguna hanya dapat diakses oleh Super Administrator dengan kredensial Superadmin penuh.
         </p>
         <button
           onClick={() => window.location.href = '/dashboard'}
@@ -75,7 +73,7 @@ export default function UsersPage() {
     setName('');
     setEmail('');
     setPassword('');
-    setRole('STAFF');
+    setRole('ENGINEERING');
     setFormError(null);
     setModalOpen(true);
   };
@@ -94,7 +92,7 @@ export default function UsersPage() {
       await api.post('/auth/register', { 
         name, 
         email, 
-        passwordHash: password, // Field password di Express schema
+        passwordHash: password,
         role 
       });
       setModalOpen(false);
@@ -121,13 +119,13 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Manajemen Pengguna & Staf</h2>
-          <p className="text-xs text-slate-500 mt-1">Daftarkan staf baru dan pantau hak akses operasional (RBAC) mereka.</p>
+          <p className="text-xs text-slate-500 mt-1">Daftarkan pengguna baru dan atur hak akses operasional (RBAC) mereka.</p>
         </div>
         <button
           onClick={openCreateModal}
           className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-600/20 transition-all"
         >
-          <Plus className="mr-1.5 h-4 w-4" />
+          <Plus className="mr-1.5 h-4.5 w-4.5" />
           Daftarkan Staf Baru
         </button>
       </div>
@@ -176,8 +174,10 @@ export default function UsersPage() {
                       </div>
                     </td>
                     <td className="py-4 px-6">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold ${
-                        item.role === 'ADMIN' ? 'bg-sky-50 text-sky-700 border border-sky-100' : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border ${
+                        item.role === 'SUPERADMIN' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                        item.role === 'ADMIN_MONITORING' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                        'bg-sky-50 text-sky-700 border-sky-100'
                       }`}>
                         {item.role}
                       </span>
@@ -203,7 +203,7 @@ export default function UsersPage() {
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <h3 className="text-base font-bold text-slate-800">
-                Daftarkan Staf Baru
+                Daftarkan Anggota Staf Baru
               </h3>
               <button onClick={() => setModalOpen(false)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
@@ -265,11 +265,15 @@ export default function UsersPage() {
                 </label>
                 <select
                   value={role}
-                  onChange={(e) => setRole(e.target.value as 'ADMIN' | 'STAFF')}
+                  onChange={(e) => setRole(e.target.value as Role)}
                   className="block w-full rounded-xl border border-slate-200 bg-slate-50/30 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm cursor-pointer"
                 >
-                  <option value="STAFF">STAFF (Hanya Update Status & Lokasi)</option>
-                  <option value="ADMIN">ADMIN (Akses Penuh / Full Access)</option>
+                  <option value="ENGINEERING">ENGINEERING (Upload Dokumen, Penawaran, BOQ, RFQ)</option>
+                  <option value="PROYEK_ADMIN">PROYEK ADMIN (View & Download Berkas)</option>
+                  <option value="PROCUREMENT">PROCUREMENT (View Berkas & Edit Harga BOQ)</option>
+                  <option value="FINANCE">FINANCE (View Penawaran & BOQ Total)</option>
+                  <option value="ADMIN_MONITORING">ADMIN MONITORING (Hanya Pengawasan / Read-Only)</option>
+                  <option value="SUPERADMIN">SUPERADMIN (Akses Penuh / Full Access)</option>
                 </select>
               </div>
 
