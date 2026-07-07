@@ -40,7 +40,7 @@ flowchart TD
     PARSER -->|Tulis Data Detail| DB_DETAILS[(Tabel Detail: BOQ, Penawaran, RFQ)]:::db
 
     %% Roles Actions
-    PR_ADM -->|Unduh Semua Berkas (ZIP)| STORE
+    PR_ADM -->|Unduh Semua Berkas ZIP| STORE
     
     PROC -->|Update Harga Satuan BOQ| DB_DETAILS
     
