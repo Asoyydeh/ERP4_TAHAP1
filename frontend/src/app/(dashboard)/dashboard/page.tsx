@@ -459,7 +459,7 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-4 px-6 text-slate-400 text-xs">{(doc.fileSize / 1024).toFixed(1)} KB</td>
-                      <td className="py-4 px-6 text-slate-400 text-xs">{new Date(doc.createdAt).toLocaleDateString('id-ID')}</td>
+                      <td className="py-4 px-6 text-slate-400 text-xs">{new Date(doc.createdAt).toLocaleString('id-ID')}</td>
                       <td className="py-4 px-6 text-right space-x-1 whitespace-nowrap">
                         <button
                           onClick={() => handleDownload(doc)}
@@ -566,7 +566,7 @@ export default function DashboardPage() {
                         </span>
                       </td>
                       <td className="py-4 px-6 font-medium">{doc.uploadedBy?.name}</td>
-                      <td className="py-4 px-6 text-slate-400 text-xs">{new Date(doc.createdAt).toLocaleDateString('id-ID')}</td>
+                      <td className="py-4 px-6 text-slate-400 text-xs">{new Date(doc.createdAt).toLocaleString('id-ID')}</td>
                       <td className="py-4 px-6 text-right">
                         <button
                           onClick={() => handleDownload(doc)}
