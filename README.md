@@ -63,7 +63,7 @@ flowchart TD
 | **Admin (Monitoring)** | Read-Only Global | - Memantau seluruh direktori penyimpanan fisik pengguna.<br>- Memantau seluruh isi tabel transaksi database.<br>- Memantau kronologi log audit sistem global.<br>- **Tidak memiliki tombol/fitur** untuk mengubah, menambah, atau menghapus data (Sistem Terkunci). |
 | **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik.<br>- Memantau riwayat log audit aktivitas.<br>- Melakukan override/koreksi data jika terjadi kesalahan operasional staf. | staf. |
 
-### Penjelasan Detil Alur Kerja Proyek (Step-by-Step):
+### Penjelasan Detil Alur Kerja Proyek :
 
 1. **Tahap 1 (Unggah File oleh Engineering)**:
    * **Langkah 1**: Staf *Engineering* mengirim berkas Gambar Teknis atau berkas spreadsheet Excel (BOQ, Penawaran, RFQ) melalui form antarmuka web.
