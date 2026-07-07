@@ -7,6 +7,7 @@ import { NotFoundError, BadRequestError, ForbiddenError } from '../utils/errors'
 import { DocType, Role, DocStatus } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
+import { ZipArchive } from 'archiver';
 
 export class DocumentController {
   /**
@@ -152,6 +153,61 @@ export class DocumentController {
       });
 
       res.download(document.filePath, document.fileName);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Mengunduh seluruh berkas proyek dalam format ZIP
+   */
+  static async downloadAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const documents = await prisma.document.findMany({
+        include: {
+          project: { select: { name: true } },
+          uploadedBy: { select: { name: true } },
+        },
+      });
+
+      const validDocuments = documents.filter((doc) => fs.existsSync(doc.filePath));
+
+      if (validDocuments.length === 0) {
+        throw new NotFoundError('Tidak ada berkas fisik yang ditemukan di server');
+      }
+
+      // Set headers untuk download ZIP
+      res.setHeader('Content-Type', 'application/zip');
+      res.setHeader('Content-Disposition', 'attachment; filename=semua-berkas-proyek.zip');
+
+      const archive = new ZipArchive({ zlib: { level: 9 } });
+
+      // Tangani error kompresi
+      archive.on('error', (err: any) => {
+        throw err;
+      });
+
+      // Pipa data kompresi langsung ke response
+      archive.pipe(res);
+
+      // Tambahkan setiap file ke ZIP dengan subfolder: Proyek/Tipe_Dokumen/Nama_File
+      for (const doc of validDocuments) {
+        // Hilangkan karakter ilegal dari nama folder proyek agar aman
+        const safeProjectName = doc.project.name.replace(/[^a-zA-Z0-9\s-_]/g, '').trim() || doc.projectId;
+        const folderInZip = `${safeProjectName}/${doc.fileType}`;
+        archive.file(doc.filePath, { name: `${folderInZip}/${doc.fileName}` });
+      }
+
+      await logAction({
+        userId: req.user!.id,
+        actionType: 'DOWNLOAD_ALL_DOCUMENTS',
+        tableName: 'documents',
+        recordId: 'all',
+        description: `Mengunduh seluruh berkas proyek (${validDocuments.length} berkas) dalam format ZIP`,
+        ipAddress: req.ip,
+      });
+
+      await archive.finalize();
     } catch (error) {
       next(error);
     }

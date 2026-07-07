@@ -53,6 +53,7 @@ export default function DashboardPage() {
   const [targetDate, setTargetDate] = useState('');
   const [terms, setTerms] = useState('');
   const [uploadSubmitting, setUploadSubmitting] = useState(false);
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   // States Procurement (Edit BOQ)
   const [selectedBoqDoc, setSelectedBoqDoc] = useState<Document | null>(null);
@@ -184,6 +185,28 @@ export default function DashboardPage() {
       document.body.removeChild(link);
     } catch (err) {
       alert('Gagal mengunduh berkas dari server.');
+    }
+  };
+
+  // DOWNLOAD SEMUA DOKUMEN (ZIP)
+  const handleDownloadAll = async () => {
+    try {
+      setDownloadingAll(true);
+      const response = await api.get('/documents/download-all', {
+        responseType: 'blob',
+      });
+      const file = new Blob([response.data], { type: 'application/zip' });
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.setAttribute('download', 'semua-berkas-proyek.zip');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      alert('Gagal mengunduh semua berkas proyek.');
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -474,9 +497,19 @@ export default function DashboardPage() {
       {/* ---------------------------------------------------- */}
       {isProyekAdmin && (
         <div className="space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-slate-800">Direktori & Pengendali Berkas Proyek</h3>
-            <p className="text-xs text-slate-500">Anda dapat melihat dan mengunduh seluruh file proyek.</p>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Direktori & Pengendali Berkas Proyek</h3>
+              <p className="text-xs text-slate-500 mt-1">Anda dapat melihat dan mengunduh seluruh file proyek.</p>
+            </div>
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloadingAll}
+              className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-600/20 transition-all disabled:opacity-50"
+            >
+              <Download className={`mr-1.5 h-4.5 w-4.5 ${downloadingAll ? 'animate-bounce' : ''}`} />
+              {downloadingAll ? 'Mengunduh...' : 'Unduh Semua Berkas (ZIP)'}
+            </button>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -1008,6 +1041,14 @@ export default function DashboardPage() {
                   <option value="PENAWARAN">PENAWARAN</option>
                   <option value="RFQ">RFQ</option>
                 </select>
+                <button
+                  onClick={handleDownloadAll}
+                  disabled={downloadingAll}
+                  className="inline-flex items-center px-4 py-2 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md transition-all disabled:opacity-50"
+                >
+                  <Download className={`mr-1.5 h-4 w-4 ${downloadingAll ? 'animate-bounce' : ''}`} />
+                  {downloadingAll ? 'Mengunduh...' : 'Unduh Semua (ZIP)'}
+                </button>
               </div>
 
               <div className="overflow-x-auto">

@@ -10,6 +10,11 @@ router.use(authenticate);
 
 // List dan download bisa diakses oleh semua staff/admin terautentikasi
 router.get('/', DocumentController.getAll);
+router.get(
+  '/download-all',
+  authorize([Role.PROYEK_ADMIN, Role.SUPERADMIN]),
+  DocumentController.downloadAll
+);
 router.get('/download/:id', DocumentController.download);
 
 // Hapus berkas (Proteksi owner/Superadmin divalidasi di controller)

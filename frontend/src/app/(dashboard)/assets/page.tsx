@@ -18,11 +18,12 @@ import {
 } from 'lucide-react';
 
 export default function DocumentsPage() {
-  const { user } = useAuth();
+  const { user, isSuperAdmin, isProyekAdmin } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloadingAll, setDownloadingAll] = useState(false);
 
   // States Pencarian & Filter
   const [search, setSearch] = useState('');
@@ -72,6 +73,27 @@ export default function DocumentsPage() {
       document.body.removeChild(link);
     } catch (err) {
       alert('Gagal mengunduh berkas.');
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    try {
+      setDownloadingAll(true);
+      const response = await api.get('/documents/download-all', {
+        responseType: 'blob',
+      });
+      const file = new Blob([response.data], { type: 'application/zip' });
+      const fileURL = URL.createObjectURL(file);
+      const link = document.createElement('a');
+      link.href = fileURL;
+      link.setAttribute('download', 'semua-berkas-proyek.zip');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err: any) {
+      alert('Gagal mengunduh semua berkas proyek.');
+    } finally {
+      setDownloadingAll(false);
     }
   };
 
@@ -129,13 +151,25 @@ export default function DocumentsPage() {
           <h2 className="text-xl font-bold text-slate-800">Penjelajah Dokumen Proyek</h2>
           <p className="text-xs text-slate-500 mt-1">Daftar semua dokumen proyek yang diunggah oleh Engineering beserta data detail terurai.</p>
         </div>
-        <button
-          onClick={fetchDocsAndProjects}
-          className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-xs transition-all"
-        >
-          <RefreshCw className="mr-1.5 h-4 w-4" />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          {(isSuperAdmin || isProyekAdmin) && (
+            <button
+              onClick={handleDownloadAll}
+              disabled={downloadingAll || loading}
+              className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-xs transition-all disabled:opacity-50"
+            >
+              <Download className={`mr-1.5 h-4 w-4 ${downloadingAll ? 'animate-bounce' : ''}`} />
+              {downloadingAll ? 'Mengunduh...' : 'Unduh Semua (ZIP)'}
+            </button>
+          )}
+          <button
+            onClick={fetchDocsAndProjects}
+            className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-xs transition-all"
+          >
+            <RefreshCw className="mr-1.5 h-4 w-4" />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Filter and Search Controls */}
