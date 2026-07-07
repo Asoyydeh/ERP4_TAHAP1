@@ -215,6 +215,7 @@ export default function DocumentsPage() {
                         {doc.fileType === 'BOQ' && <FileSpreadsheet className="h-5 w-5 text-emerald-600 shrink-0" />}
                         {doc.fileType === 'PENAWARAN' && <FileCheck className="h-5 w-5 text-purple-600 shrink-0" />}
                         {doc.fileType === 'RFQ' && <FileText className="h-5 w-5 text-amber-500 shrink-0" />}
+                        {doc.fileType === 'PO' && <FileText className="h-5 w-5 text-indigo-500 shrink-0" />}
                         <span className="truncate max-w-[200px]" title={doc.fileName}>{doc.fileName}</span>
                       </td>
                       <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
@@ -229,10 +230,13 @@ export default function DocumentsPage() {
                       </td>
                       <td className="py-4 px-6 text-slate-400 text-xs">{(doc.fileSize / 1024).toFixed(1)} KB</td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold ${
-                          doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700' :
-                          doc.status === 'REVISED_BY_PROCUREMENT' ? 'bg-amber-50 text-amber-700' :
-                          'bg-slate-50 text-slate-700'
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border ${
+                          doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          doc.status === 'REVISED_BY_PROCUREMENT' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          doc.status === 'PO_PENDING' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          doc.status === 'PO_RELEASED' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                          doc.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                          'bg-slate-50 text-slate-700 border-slate-100'
                         }`}>
                           {doc.status.replace(/_/g, ' ')}
                         </span>

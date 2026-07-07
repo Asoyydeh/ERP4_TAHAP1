@@ -23,13 +23,15 @@ flowchart TD
     %% Roles
     ENG[1. Engineering <br> Creator/Editor]:::roleEng
     PR_ADM[4. Proyek Admin <br> Viewer/Downloader]:::roleProy
-    PROC[5. Procurement <br> Editor BOQ Price]:::roleProc
-    FIN[6. Finance <br> Verifier Penawaran]:::roleFin
+    PROC[5. Procurement <br> Editor BOQ & Upload PO]:::roleProc
+    FIN[6. Finance <br> Verifier & Release PO]:::roleFin
     ADM_MON[7. Admin Monitoring <br> Read-Only Monitor]:::roleAdmin
     S_ADM[8. Superadmin <br> Full CRUD & Users]:::roleAdmin
 
     %% Core Data Flow
     ENG -->|Upload Berkas| MULTER[2. Upload Middleware & Controller]:::process
+    PROC -->|Upload PO Baru| MULTER
+    
     MULTER -->|Simpan File Fisik| STORE[(Storage Terisolasi <br> /uploads/users/userId/)]:::folder
     MULTER -->|Tulis Metadata Berkas| DB_DOCS[(Tabel: documents)]:::db
 
@@ -39,8 +41,11 @@ flowchart TD
 
     %% Roles Actions
     PR_ADM -->|Unduh Berkas Proyek| STORE
+    
     PROC -->|Update Harga Satuan BOQ| DB_DETAILS
+    
     FIN -->|Verifikasi Nilai Anggaran| DB_DETAILS
+    FIN -->|Rilis Status PO_PENDING -> PO_RELEASED| DB_DOCS
 
     %% Monitoring Connections
     ADM_MON -.->|Monitoring Aktivitas| DB_DOCS & DB_DETAILS
@@ -53,10 +58,10 @@ flowchart TD
 | :--- | :--- | :--- |
 | **Engineering** | CRUD milik sendiri | - Mengunggah berkas Gambar Teknis.<br>- Mengunggah Penawaran Vendor (Excel + PDF) melalui Form Modal.<br>- Mengunggah berkas BOQ & RFQ (Excel).<br>- Hanya dapat memanipulasi berkas di folder terisolasi miliknya sendiri. |
 | **Proyek Admin** | Read-Only | - Melihat daftar seluruh berkas proyek aktif.<br>- Mengunduh seluruh berkas proyek lapangan.<br>- **Tidak memiliki hak akses** untuk mengubah data, menambah proyek, atau menghapus berkas. |
-| **Procurement** | Read + Edit BOQ | - Melihat daftar berkas proyek.<br>- Membuka tab evaluasi dan mengubah kolom harga satuan aktual (`rateProcurement`) di berkas BOQ.<br>- Memberikan catatan detail (*notes*) negosiasi item pekerjaan. |
-| **Finance** | Read-Only (Komersil) | - Memverifikasi nilai penawaran vendor melalui pop-up modal detail hasil pembacaan Excel.<br>- Memantau total nilai akhir anggaran BOQ yang telah disesuaikan oleh Procurement. |
+| **Procurement** | Read + Edit BOQ & PO | - Melihat daftar berkas proyek.<br>- Membuka tab evaluasi dan mengubah kolom harga satuan aktual (`rateProcurement`) di berkas BOQ.<br>- Memberikan catatan detail (*notes*) negosiasi item pekerjaan.<br>- Mengunggah berkas Purchase Order (PO) baru yang otomatis berstatus `PO_PENDING`. |
+| **Finance** | Read-Only + Release PO | - Memverifikasi nilai penawaran vendor melalui pop-up modal detail hasil pembacaan Excel.<br>- Memantau total nilai akhir anggaran BOQ yang telah disesuaikan oleh Procurement.<br>- Melakukan verifikasi dan rilis berkas Purchase Order (PO), mengubah statusnya dari `PO_PENDING` menjadi `PO_RELEASED`. |
 | **Admin (Monitoring)** | Read-Only Global | - Memantau seluruh direktori penyimpanan fisik pengguna.<br>- Memantau seluruh isi tabel transaksi database.<br>- Memantau kronologi log audit sistem global.<br>- **Tidak memiliki tombol/fitur** untuk mengubah, menambah, atau menghapus data (Sistem Terkunci). |
-| **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik.<br>- Memantau riwayat log audit aktivitas.<br>- Melakukan override/koreksi data jika terjadi kesalahan operasional staf. |
+| **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik.<br>- Memantau riwayat log audit aktivitas.<br>- Melakukan override/koreksi data jika terjadi kesalahan operasional staf. | staf. |
 
 ### Penjelasan Detil Alur Kerja Proyek (Step-by-Step):
 

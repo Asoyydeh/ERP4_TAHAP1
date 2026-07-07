@@ -40,7 +40,7 @@ export class DocumentController {
           filePath: file.path,
           fileSize: file.size,
           uploadedById: req.user!.id,
-          status: DocStatus.PENDING,
+          status: docType === DocType.PO ? DocStatus.PO_PENDING : DocStatus.PENDING,
         },
       });
 
@@ -316,6 +316,54 @@ export class DocumentController {
 
       if (!rfqHeader) throw new NotFoundError('Data RFQ tidak ditemukan');
       res.status(200).json({ success: true, data: rfqHeader });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Mengubah status dokumen (misalnya menyetujui dokumen atau merilis PO)
+   */
+  static async updateStatus(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+
+      if (!status) throw new BadRequestError('Status baru diperlukan');
+      if (!Object.values(DocStatus).includes(status as DocStatus)) {
+        throw new BadRequestError('Status tidak valid');
+      }
+
+      const document = await prisma.document.findUnique({ where: { id } });
+      if (!document) throw new NotFoundError('Dokumen tidak ditemukan');
+
+      // Proteksi: Hanya Superadmin, Finance, atau Procurement yang diizinkan merubah status
+      const allowedRoles: Role[] = [Role.SUPERADMIN, Role.FINANCE, Role.PROCUREMENT];
+      if (!allowedRoles.includes(req.user!.role)) {
+        throw new ForbiddenError('Anda tidak memiliki hak untuk mengubah status berkas');
+      }
+
+      const updatedDoc = await prisma.document.update({
+        where: { id },
+        data: { status: status as DocStatus },
+      });
+
+      await logAction({
+        userId: req.user!.id,
+        actionType: 'UPDATE_DOCUMENT_STATUS',
+        tableName: 'documents',
+        recordId: id,
+        description: `Mengubah status berkas '${document.fileName}' dari ${document.status} menjadi ${status}`,
+        oldValues: document,
+        newValues: updatedDoc,
+        ipAddress: req.ip,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: 'Status dokumen berhasil diperbarui',
+        data: updatedDoc,
+      });
     } catch (error) {
       next(error);
     }

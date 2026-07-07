@@ -21,6 +21,7 @@ enum DocType {
   PENAWARAN
   BOQ
   RFQ
+  PO
 }
 
 enum DocStatus {
@@ -29,6 +30,8 @@ enum DocStatus {
   REVISED_BY_PROCUREMENT
   APPROVED
   REJECTED
+  PO_PENDING
+  PO_RELEASED
 }
 
 model User {

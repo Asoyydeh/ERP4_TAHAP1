@@ -18,7 +18,7 @@ router.delete('/:id', DocumentController.delete);
 // Upload berkas proyek (Hanya ENGINEERING dan SUPERADMIN)
 router.post(
   '/upload/:fileType',
-  authorize([Role.ENGINEERING, Role.SUPERADMIN]),
+  authorize([Role.ENGINEERING, Role.PROCUREMENT, Role.SUPERADMIN]),
   upload.single('file'),
   DocumentController.upload
 );
@@ -33,6 +33,13 @@ router.put(
   '/boq/items/:itemId',
   authorize([Role.PROCUREMENT, Role.SUPERADMIN]),
   DocumentController.updateBoqItemRate
+);
+
+// Ubah status dokumen (Hanya Procurement, Finance, dan Superadmin)
+router.put(
+  '/:id/status',
+  authorize([Role.PROCUREMENT, Role.FINANCE, Role.SUPERADMIN]),
+  DocumentController.updateStatus
 );
 
 export default router;

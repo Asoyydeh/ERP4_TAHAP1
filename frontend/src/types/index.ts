@@ -1,7 +1,7 @@
 export type Role = 'ENGINEERING' | 'PROYEK_ADMIN' | 'PROCUREMENT' | 'FINANCE' | 'ADMIN_MONITORING' | 'SUPERADMIN';
 
-export type DocType = 'GAMBAR' | 'PENAWARAN' | 'BOQ' | 'RFQ';
-export type DocStatus = 'DRAFT' | 'PENDING' | 'REVISED_BY_PROCUREMENT' | 'APPROVED' | 'REJECTED';
+export type DocType = 'GAMBAR' | 'PENAWARAN' | 'BOQ' | 'RFQ' | 'PO';
+export type DocStatus = 'DRAFT' | 'PENDING' | 'REVISED_BY_PROCUREMENT' | 'APPROVED' | 'REJECTED' | 'PO_PENDING' | 'PO_RELEASED';
 
 export interface User {
   id: string;

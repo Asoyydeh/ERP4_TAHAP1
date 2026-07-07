@@ -187,6 +187,20 @@ export default function DashboardPage() {
     }
   };
 
+  // RILIS PURCHASE ORDER (Finance / Superadmin)
+  const handleReleasePo = async (docId: string) => {
+    if (!confirm('Apakah Anda yakin ingin menyetujui & merilis Purchase Order (PO) ini?')) {
+      return;
+    }
+    try {
+      await api.put(`/documents/${docId}/status`, { status: 'PO_RELEASED' });
+      alert('Purchase Order (PO) berhasil dirilis!');
+      loadData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Gagal merilis Purchase Order.');
+    }
+  };
+
   // HAPUS DOKUMEN (Owner / Superadmin)
   const handleDeleteDocument = async (id: string, fileName: string) => {
     if (!confirm(`Apakah Anda yakin ingin menghapus berkas "${fileName}"? Seluruh data terurai terkait akan hilang.`)) {
@@ -551,8 +565,21 @@ export default function DashboardPage() {
       {isProcurement && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-bold text-slate-800">Evaluasi Harga Satuan BOQ</h3>
-            <p className="text-xs text-slate-500">Anda dapat mengubah harga satuan item BOQ yang diupload oleh Engineering.</p>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800">Evaluasi Harga Satuan BOQ</h3>
+              <p className="text-xs text-slate-500">Anda dapat mengubah harga satuan item BOQ yang diupload oleh Engineering.</p>
+            </div>
+            <button
+              onClick={() => {
+                setUploadFileType('PO');
+                setUploadProject('');
+                setUploadModalOpen(true);
+              }}
+              className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 transition-all"
+            >
+              <Plus className="mr-1.5 h-4.5 w-4.5" />
+              Unggah PO Baru
+            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -718,7 +745,7 @@ export default function DashboardPage() {
             <p className="text-xs text-slate-500">Tinjau penawaran vendor (modal) dan awasi total anggaran BOQ.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Penawaran Vendor Section */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
               <div className="flex items-center space-x-2 pb-2 border-b border-slate-100">
@@ -782,6 +809,55 @@ export default function DashboardPage() {
                 })}
                 {documents.filter(d => d.fileType === 'BOQ').length === 0 && (
                   <p className="text-xs text-slate-400 text-center py-6">Tidak ada dokumen BOQ diupload.</p>
+                )}
+              </div>
+            </div>
+
+            {/* Purchase Order (PO) Release Section */}
+            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+              <div className="flex items-center space-x-2 pb-2 border-b border-slate-100">
+                <FileCheck className="text-indigo-600 h-5 w-5" />
+                <h4 className="text-sm font-bold text-slate-700">Pelepasan Purchase Order (PO)</h4>
+              </div>
+              <div className="space-y-2">
+                {documents.filter(d => d.fileType === 'PO').map((doc) => {
+                  const isPending = doc.status === 'PO_PENDING';
+                  return (
+                    <div key={doc.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all flex flex-col justify-between space-y-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h5 className="text-xs font-bold text-slate-700 truncate max-w-[140px]" title={doc.fileName}>{doc.fileName}</h5>
+                          <p className="text-3xs text-slate-400 mt-1">Proyek: {doc.project?.name}</p>
+                          <p className="text-3xs text-slate-400 mt-0.5 font-semibold text-indigo-600">Uploader: {doc.uploadedBy?.name}</p>
+                        </div>
+                        <span className={`inline-flex px-1.5 py-0.5 rounded border text-3xs font-semibold ${
+                          isPending ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-indigo-50 text-indigo-700 border-indigo-100'
+                        }`}>
+                          {doc.status === 'PO_PENDING' ? 'PO Pending' : 'PO Dirilis'}
+                        </span>
+                      </div>
+                      <div className="flex justify-end space-x-1.5 pt-2 border-t border-slate-50">
+                        <button
+                          onClick={() => handleDownload(doc)}
+                          className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-md text-3xs font-semibold flex items-center transition-all"
+                        >
+                          <Download className="h-3 w-3 mr-1" />
+                          Unduh
+                        </button>
+                        {isPending && (
+                          <button
+                            onClick={() => handleReleasePo(doc.id)}
+                            className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-3xs font-bold flex items-center transition-all shadow-sm shadow-indigo-600/10"
+                          >
+                            Rilis PO
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+                {documents.filter(d => d.fileType === 'PO').length === 0 && (
+                  <p className="text-xs text-slate-400 text-center py-6">Belum ada dokumen PO diupload.</p>
                 )}
               </div>
             </div>
@@ -1095,6 +1171,7 @@ export default function DashboardPage() {
                     <option value="BOQ">BOQ (Excel)</option>
                     <option value="PENAWARAN">PENAWARAN (Excel)</option>
                     <option value="RFQ">RFQ (Excel)</option>
+                    <option value="PO">PO (Purchase Order)</option>
                   </select>
                 </div>
 
