@@ -19,60 +19,45 @@ flowchart TD
     classDef process fill:#f0f4c3,stroke:#afb42b,stroke-width:2px,color:#33691e;
     classDef db fill:#e0f7fa,stroke:#0097a7,stroke-width:2px,color:#006064;
     classDef folder fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#e65100;
-    classDef doc fill:#f5f5f5,stroke:#37474f,stroke-width:1px,color:#37474f;
 
-    %% Roles & Detailed Functions
-    ENG["Engineering (Creator/Editor) <br> - Upload Gambar Teknis <br> - Upload Penawaran (Excel+PDF) <br> - Upload BOQ & RFQ (Excel) <br> - CRUD Berkas Milik Sendiri"]:::roleEng
-    PR_ADM["Proyek Admin (Controller) <br> - Lihat Seluruh Berkas <br> - Unduh Seluruh Berkas <br> - Monitoring Hasil Kerja <br> - Tanpa Izin Edit/Hapus"]:::roleProy
-    PROC["Procurement (Purchaser) <br> - Lihat Seluruh Berkas <br> - Edit Harga Satuan BOQ <br> - Update Catatan BOQ"]:::roleProc
-    FIN["Finance (Verifier) <br> - Lihat Rincian Penawaran (Modal) <br> - Pantau Total Anggaran BOQ <br> - Evaluasi Nilai Transaksi"]:::roleFin
-    ADM_MON["Admin Monitoring (ReadOnly) <br> - Pantau Seluruh Folder Pengguna <br> - Pantau Riwayat Transaksi DB <br> - Pantau Log Audit Sistem <br> - Tanpa Tombol/Aksi Edit/Hapus"]:::roleAdmin
-    S_ADM["Superadmin (Full Control) <br> - Manajemen Pengguna (Staf) <br> - Pantau Seluruh Aktivitas & Log <br> - CRUD Seluruh Berkas & Database <br> - Override Nilai & Koreksi Data"]:::roleAdmin
+    %% Roles
+    ENG[1. Engineering <br> Creator/Editor]:::roleEng
+    PR_ADM[4. Proyek Admin <br> Viewer/Downloader]:::roleProy
+    PROC[5. Procurement <br> Editor BOQ Price]:::roleProc
+    FIN[6. Finance <br> Verifier Penawaran]:::roleFin
+    ADM_MON[7. Admin Monitoring <br> Read-Only Monitor]:::roleAdmin
+    S_ADM[8. Superadmin <br> Full CRUD & Users]:::roleAdmin
 
-    %% Step 1: Upload Flow (Engineering)
-    subgraph STG_1 [TAHAP 1: Unggah & Penyimpanan Berkas - Engineering]
-        ENG -->|1. Kirim File Multipart| MW_MULTER[Middleware Multer <br> & Upload Controller]:::process
-        MW_MULTER -->|2. Validasi & Simpan File Fisik| STORAGE_FS[(Physical Storage <br> /storage/uploads/users/userId/fileType/)]:::folder
-        MW_MULTER -->|3. Tulis Metadata File| TBL_DOCS[(Tabel: documents)]:::db
-    end
+    %% Core Data Flow
+    ENG -->|Upload Berkas| MULTER[2. Upload Middleware & Controller]:::process
+    MULTER -->|Simpan File Fisik| STORE[(Storage Terisolasi <br> /uploads/users/userId/)]:::folder
+    MULTER -->|Tulis Metadata Berkas| DB_DOCS[(Tabel: documents)]:::db
 
-    %% Step 2: Excel Parsing Flow
-    subgraph STG_2 [TAHAP 2: Otomatisasi Parsing Excel ke DB]
-        TBL_DOCS -->|4. Trigger Jika File Excel| PARSER[ExcelParserService]:::process
-        STORAGE_FS -.->|Baca File Excel| PARSER
-        PARSER -->|5a. Simpan Data Parsed BOQ| TBL_BOQ[(Tabel: boq_headers & boq_items)]:::db
-        PARSER -->|5b. Simpan Data Parsed Penawaran| TBL_PNW[(Tabel: penawaran_headers & penawaran_items)]:::db
-        PARSER -->|5c. Simpan Data Parsed RFQ| TBL_RFQ[(Tabel: rfq_headers & rfq_items)]:::db
-    end
+    DB_DOCS -->|Otomatis Penguraian Excel| PARSER[3. ExcelParserService]:::process
+    STORE -.->|Baca Berkas Excel| PARSER
+    PARSER -->|Tulis Data Detail| DB_DETAILS[(Tabel Detail: BOQ, Penawaran, RFQ)]:::db
 
-    %% Step 3: Proyek Admin Flow
-    subgraph STG_3 [TAHAP 3: Pengendalian & Distribusi - Proyek Admin]
-        PR_ADM -->|6. Ambil List Dokumen| TBL_DOCS
-        PR_ADM -->|7. Request Download| MW_MULTER
-        MW_MULTER -.->|Baca & Kirim Berkas Fisik| STORAGE_FS
-        STORAGE_FS -->|Kirim File ke Browser| PR_ADM
-    end
+    %% Roles Actions
+    PR_ADM -->|Unduh Berkas Proyek| STORE
+    PROC -->|Update Harga Satuan BOQ| DB_DETAILS
+    FIN -->|Verifikasi Nilai Anggaran| DB_DETAILS
 
-    %% Step 4: Procurement Revision Flow
-    subgraph STG_4 [TAHAP 4: Negosiasi & Evaluasi Harga - Procurement]
-        PROC -->|8. Ambil Data BOQ| TBL_BOQ
-        PROC -->|9. Update rateProcurement & notes| TBL_BOQ
-        TBL_BOQ -->|10. Hitung Ulang totalAmount & Ubah Status REVISED| TBL_BOQ
-    end
-
-    %% Step 5: Finance Verification Flow
-    subgraph STG_5 [TAHAP 5: Verifikasi Keuangan - Finance]
-        FIN -->|11. Buka Modal Penawaran| TBL_PNW
-        FIN -->|12. Monitor Total Budget Akhir| TBL_BOQ
-    end
-
-    %% Step 6: Log Audit Trail (Superadmin & Admin Monitoring)
-    subgraph STG_6 [AUDIT TRAIL & MONITORING]
-        MW_MULTER & PARSER & TBL_BOQ -->|Catat Log Aktivitas| TBL_LOGS[(Tabel: audit_logs)]:::db
-        ADM_MON -.->|13a. Baca Semua Folder & Tabel <br> Read-Only| STORAGE_FS & TBL_DOCS & TBL_BOQ & TBL_PNW & TBL_RFQ & TBL_LOGS
-        S_ADM -.->|13b. Hak CRUD Penuh pada Folder, <br> Tabel & Akun Pengguna| STORAGE_FS & TBL_DOCS & TBL_BOQ & TBL_PNW & TBL_RFQ & TBL_LOGS
-    end
+    %% Monitoring Connections
+    ADM_MON -.->|Monitoring Aktivitas| DB_DOCS & DB_DETAILS
+    S_ADM -.->|Manajemen CRUD & Staf| DB_DOCS & DB_DETAILS & STORE
 ```
+
+### 📋 Tabel Rincian Peran & Fungsi Pengguna (Role Matrix)
+
+| Pengguna / Peran (Role) | Hak Akses (Access Control) | Fungsi & Tanggung Jawab Utama |
+| :--- | :--- | :--- |
+| **Engineering** | CRUD milik sendiri | - Mengunggah berkas Gambar Teknis.<br>- Mengunggah Penawaran Vendor (Excel + PDF) melalui Form Modal.<br>- Mengunggah berkas BOQ & RFQ (Excel).<br>- Hanya dapat memanipulasi berkas di folder terisolasi miliknya sendiri. |
+| **Proyek Admin** | Read-Only | - Melihat daftar seluruh berkas proyek aktif.<br>- Mengunduh seluruh berkas proyek lapangan.<br>- **Tidak memiliki hak akses** untuk mengubah data, menambah proyek, atau menghapus berkas. |
+| **Procurement** | Read + Edit BOQ | - Melihat daftar berkas proyek.<br>- Membuka tab evaluasi dan mengubah kolom harga satuan aktual (`rateProcurement`) di berkas BOQ.<br>- Memberikan catatan detail (*notes*) negosiasi item pekerjaan. |
+| **Finance** | Read-Only (Komersil) | - Memverifikasi nilai penawaran vendor melalui pop-up modal detail hasil pembacaan Excel.<br>- Memantau total nilai akhir anggaran BOQ yang telah disesuaikan oleh Procurement. |
+| **Admin (Monitoring)** | Read-Only Global | - Memantau seluruh direktori penyimpanan fisik pengguna.<br>- Memantau seluruh isi tabel transaksi database.<br>- Memantau kronologi log audit sistem global.<br>- **Tidak memiliki tombol/fitur** untuk mengubah, menambah, atau menghapus data (Sistem Terkunci). |
+| **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik.<br>- Memantau riwayat log audit aktivitas.<br>- Melakukan override/koreksi data jika terjadi kesalahan operasional staf. |
+
 
 ### Penjelasan Detil Alur Kerja Proyek (Step-by-Step):
 
