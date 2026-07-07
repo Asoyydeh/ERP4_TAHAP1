@@ -21,13 +21,13 @@ flowchart TD
     classDef folder fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#e65100;
     classDef doc fill:#f5f5f5,stroke:#37474f,stroke-width:1px,color:#37474f;
 
-    %% Roles
-    ENG[Engineering]:::roleEng
-    PR_ADM[Proyek Admin]:::roleProy
-    PROC[Procurement]:::roleProc
-    FIN[Finance]:::roleFin
-    ADM_MON[Admin - Monitoring]:::roleAdmin
-    S_ADM[Superadmin]:::roleAdmin
+    %% Roles & Detailed Functions
+    ENG["Engineering (Creator/Editor) <br> - Upload Gambar Teknis <br> - Upload Penawaran (Excel+PDF) <br> - Upload BOQ & RFQ (Excel) <br> - CRUD Berkas Milik Sendiri"]:::roleEng
+    PR_ADM["Proyek Admin (Controller) <br> - Lihat Seluruh Berkas <br> - Unduh Seluruh Berkas <br> - Monitoring Hasil Kerja <br> - Tanpa Izin Edit/Hapus"]:::roleProy
+    PROC["Procurement (Purchaser) <br> - Lihat Seluruh Berkas <br> - Edit Harga Satuan BOQ <br> - Update Catatan BOQ"]:::roleProc
+    FIN["Finance (Verifier) <br> - Lihat Rincian Penawaran (Modal) <br> - Pantau Total Anggaran BOQ <br> - Evaluasi Nilai Transaksi"]:::roleFin
+    ADM_MON["Admin Monitoring (ReadOnly) <br> - Pantau Seluruh Folder Pengguna <br> - Pantau Riwayat Transaksi DB <br> - Pantau Log Audit Sistem <br> - Tanpa Tombol/Aksi Edit/Hapus"]:::roleAdmin
+    S_ADM["Superadmin (Full Control) <br> - Manajemen Pengguna (Staf) <br> - Pantau Seluruh Aktivitas & Log <br> - CRUD Seluruh Berkas & Database <br> - Override Nilai & Koreksi Data"]:::roleAdmin
 
     %% Step 1: Upload Flow (Engineering)
     subgraph STG_1 [TAHAP 1: Unggah & Penyimpanan Berkas - Engineering]
