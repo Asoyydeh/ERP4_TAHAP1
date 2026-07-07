@@ -1,39 +1,110 @@
-# Asset Management System (ERP)
+# Project Document Collaboration ERP System
 
-Sistem ERP berbasis web untuk manajemen aset perusahaan. Sistem ini mencakup pencatatan inventori barang, lokasi, status operasional (tersedia, digunakan, pemeliharaan, diarsipkan), nilai penyusutan aset (depresiasi), pencetakan laporan PDF, serta integrasi notifikasi real-time ke WhatsApp, Telegram, dan sinkronisasi otomatis ke Google Spreadsheet.
+Sistem ERP berbasis web untuk kolaborasi dokumen proyek konstruksi (Gambar Teknis, BOQ, Penawaran, RFQ). Sistem ini mendukung folder penyimpanan fisik terisolasi untuk masing-masing user, otomatisasi parsing berkas Excel (BOQ, Penawaran, RFQ) langsung ke database PostgreSQL, revisi harga satuan BOQ oleh Procurement, pemantauan total anggaran oleh Finance, serta log audit dan pengawasan terpusat bagi Admin Monitoring dan Superadmin.
 
 ---
 
-## 🗺️ Flowmap & Arsitektur Sistem
+## 🗺️ Flowmap Alur Kerja & Distribusi Dokumen Proyek
 
-Berikut adalah alur data dan interaksi antara pengguna, aplikasi, database, dan integrasi pihak ketiga:
+Berikut adalah visualisasi alur kerja kolaborasi proyek, penguraian file Excel, dan hak akses multi-role (termasuk Admin Monitoring & Superadmin):
 
 ```mermaid
-graph TD
-    User([Pengguna / Staff]) -->|Akses Dashboard| FE[Frontend - Next.js]
-    FE -->|API Request| BE[Backend - Express & Prisma]
-    BE -->|Query Data| DB[(Database - PostgreSQL)]
-    
-    %% Alur Pendaftaran & Perubahan Status Aset
-    BE -->|Log Aktivitas| DB
-    BE -->|Trigger Notifikasi & Sync| NotifUtils{Notification Utility}
-    
-    NotifUtils -->|POST Request| TelegramAPI[Telegram Bot API]
-    NotifUtils -->|POST Request| FonnteAPI[WhatsApp Gateway Fonnte]
-    NotifUtils -->|POST Request| GoogleAppsScript[Google Apps Script Web App]
-    
-    TelegramAPI -->|Kirim Pesan| TelegramChat([Telegram Chat / Group])
-    FonnteAPI -->|Kirim Pesan| WAPhone([WhatsApp HP Penerima])
-    GoogleAppsScript -->|Tulis Baris Baru| GoogleSheet[(Google Spreadsheet)]
-    
-    %% Alur Cetak Laporan
-    User -->|Klik Cetak Laporan| FE
-    FE -->|Request PDF| BE
-    BE -->|Ambil Data Aset| DB
-    BE -->|Generate PDF via PDFKit| PDFBuffer[Report Service - Times New Roman]
-    PDFBuffer -->|Kirim File Buffer| FE
-    FE -->|Download PDF| User
+flowchart TD
+    %% Styling Node
+    classDef roleEng fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    classDef roleProy fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#4a148c;
+    classDef roleProc fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef roleFin fill:#fff8e1,stroke:#f57f17,stroke-width:2px,color:#e65100;
+    classDef roleAdmin fill:#ffebee,stroke:#c62828,stroke-width:2px,color:#b71c1c;
+    classDef process fill:#f0f4c3,stroke:#afb42b,stroke-width:2px,color:#33691e;
+    classDef db fill:#e0f7fa,stroke:#0097a7,stroke-width:2px,color:#006064;
+    classDef folder fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#e65100;
+    classDef doc fill:#f5f5f5,stroke:#37474f,stroke-width:1px,color:#37474f;
+
+    %% Roles & Detailed Functions
+    ENG["Engineering (Creator/Editor) <br> - Upload Gambar Teknis <br> - Upload Penawaran (Excel+PDF) <br> - Upload BOQ & RFQ (Excel) <br> - CRUD Berkas Milik Sendiri"]:::roleEng
+    PR_ADM["Proyek Admin (Controller) <br> - Lihat Seluruh Berkas <br> - Unduh Seluruh Berkas <br> - Monitoring Hasil Kerja <br> - Tanpa Izin Edit/Hapus"]:::roleProy
+    PROC["Procurement (Purchaser) <br> - Lihat Seluruh Berkas <br> - Edit Harga Satuan BOQ <br> - Update Catatan BOQ"]:::roleProc
+    FIN["Finance (Verifier) <br> - Lihat Rincian Penawaran (Modal) <br> - Pantau Total Anggaran BOQ <br> - Evaluasi Nilai Transaksi"]:::roleFin
+    ADM_MON["Admin Monitoring (ReadOnly) <br> - Pantau Seluruh Folder Pengguna <br> - Pantau Riwayat Transaksi DB <br> - Pantau Log Audit Sistem <br> - Tanpa Tombol/Aksi Edit/Hapus"]:::roleAdmin
+    S_ADM["Superadmin (Full Control) <br> - Manajemen Pengguna (Staf) <br> - Pantau Seluruh Aktivitas & Log <br> - CRUD Seluruh Berkas & Database <br> - Override Nilai & Koreksi Data"]:::roleAdmin
+
+    %% Step 1: Upload Flow (Engineering)
+    subgraph STG_1 [TAHAP 1: Unggah & Penyimpanan Berkas - Engineering]
+        ENG -->|1. Kirim File Multipart| MW_MULTER[Middleware Multer <br> & Upload Controller]:::process
+        MW_MULTER -->|2. Validasi & Simpan File Fisik| STORAGE_FS[(Physical Storage <br> /storage/uploads/users/userId/fileType/)]:::folder
+        MW_MULTER -->|3. Tulis Metadata File| TBL_DOCS[(Tabel: documents)]:::db
+    end
+
+    %% Step 2: Excel Parsing Flow
+    subgraph STG_2 [TAHAP 2: Otomatisasi Parsing Excel ke DB]
+        TBL_DOCS -->|4. Trigger Jika File Excel| PARSER[ExcelParserService]:::process
+        STORAGE_FS -.->|Baca File Excel| PARSER
+        PARSER -->|5a. Simpan Data Parsed BOQ| TBL_BOQ[(Tabel: boq_headers & boq_items)]:::db
+        PARSER -->|5b. Simpan Data Parsed Penawaran| TBL_PNW[(Tabel: penawaran_headers & penawaran_items)]:::db
+        PARSER -->|5c. Simpan Data Parsed RFQ| TBL_RFQ[(Tabel: rfq_headers & rfq_items)]:::db
+    end
+
+    %% Step 3: Proyek Admin Flow
+    subgraph STG_3 [TAHAP 3: Pengendalian & Distribusi - Proyek Admin]
+        PR_ADM -->|6. Ambil List Dokumen| TBL_DOCS
+        PR_ADM -->|7. Request Download| MW_MULTER
+        MW_MULTER -.->|Baca & Kirim Berkas Fisik| STORAGE_FS
+        STORAGE_FS -->|Kirim File ke Browser| PR_ADM
+    end
+
+    %% Step 4: Procurement Revision Flow
+    subgraph STG_4 [TAHAP 4: Negosiasi & Evaluasi Harga - Procurement]
+        PROC -->|8. Ambil Data BOQ| TBL_BOQ
+        PROC -->|9. Update rateProcurement & notes| TBL_BOQ
+        TBL_BOQ -->|10. Hitung Ulang totalAmount & Ubah Status REVISED| TBL_BOQ
+    end
+
+    %% Step 5: Finance Verification Flow
+    subgraph STG_5 [TAHAP 5: Verifikasi Keuangan - Finance]
+        FIN -->|11. Buka Modal Penawaran| TBL_PNW
+        FIN -->|12. Monitor Total Budget Akhir| TBL_BOQ
+    end
+
+    %% Step 6: Log Audit Trail (Superadmin & Admin Monitoring)
+    subgraph STG_6 [AUDIT TRAIL & MONITORING]
+        MW_MULTER & PARSER & TBL_BOQ -->|Catat Log Aktivitas| TBL_LOGS[(Tabel: audit_logs)]:::db
+        ADM_MON -.->|13a. Baca Semua Folder & Tabel <br> Read-Only| STORAGE_FS & TBL_DOCS & TBL_BOQ & TBL_PNW & TBL_RFQ & TBL_LOGS
+        S_ADM -.->|13b. Hak CRUD Penuh pada Folder, <br> Tabel & Akun Pengguna| STORAGE_FS & TBL_DOCS & TBL_BOQ & TBL_PNW & TBL_RFQ & TBL_LOGS
+    end
 ```
+
+### Penjelasan Detil Alur Kerja Proyek (Step-by-Step):
+
+1. **Tahap 1 (Unggah File oleh Engineering)**:
+   * **Langkah 1**: Staf *Engineering* mengirim berkas Gambar Teknis atau berkas spreadsheet Excel (BOQ, Penawaran, RFQ) melalui form antarmuka web.
+   * **Langkah 2**: Server Express menangkap berkas melalui middleware `multer`. Multer mendeteksi uploader ID dan jenis dokumen untuk diletakkan ke folder terisolasi di disk server (`/storage/uploads/users/{user_uuid}/{file_type}/`).
+   * **Langkah 3**: Metadata berkas (seperti nama file, path fisik, tipe, ukuran, pengunggah) disimpan ke tabel `documents` dengan status awal `PENDING`.
+
+2. **Tahap 2 (Otomatisasi Parsing Excel ke Database)**:
+   * **Langkah 4**: Jika berkas yang diunggah berupa Excel (.xlsx / .xls), sistem memanggil `ExcelParserService`.
+   * **Langkah 5a, 5b, 5c**: Layanan pengurai akan membuka lembar kerja Excel dan memindahkan isinya ke dalam baris-baris tabel database secara terstruktur:
+     * File **BOQ** dimasukkan ke tabel `boq_headers` dan baris detailnya ke `boq_items`.
+     * File **Penawaran** dimasukkan ke tabel `penawaran_headers` dan detail barang ke `penawaran_items` (disertai nama vendor & masa berlaku dari input form modal).
+     * File **RFQ** dimasukkan ke tabel `rfq_headers` dan detail penawaran ke `rfq_items`.
+
+3. **Tahap 3 (Pengendalian oleh Proyek Admin)**:
+   * **Langkah 6**: Staf *Proyek Admin* memantau daftar semua berkas proyek melalui tabel Documents Explorer yang mengambil data dari tabel `documents`.
+   * **Langkah 7**: Ketika tombol *Download* ditekan, server memverifikasi sesi lalu menyuplai kembali berkas fisik dari folder terisolasi pengguna bersangkutan agar dapat diunduh ke browser.
+
+4. **Tahap 4 (Evaluasi Harga Satuan oleh Procurement)**:
+   * **Langkah 8**: Staf *Procurement* membuka tab evaluasi BOQ untuk melihat rincian item pekerjaan di tabel `boq_items` yang diupload Engineering.
+   * **Langkah 9**: Procurement dapat memperbarui kolom `rateProcurement` (harga satuan deal negosiasi) dan menambahkan catatan (*notes*) negosiasi langsung di dalam tabel.
+   * **Langkah 10**: Server secara otomatis menghitung ulang `totalPrice` item (`quantity` * `rateProcurement`), mengakumulasi total akhir di tabel `boq_headers` (`totalAmount`), serta mengubah status dokumen menjadi `REVISED_BY_PROCUREMENT`.
+
+5. **Tahap 5 (Verifikasi Keuangan oleh Finance)**:
+   * **Langkah 11**: Staf *Finance* dapat melihat dokumen penawaran dalam bentuk popup modal yang berisi data terurai vendor (`penawaran_items` seperti kuantitas, harga, total sub).
+   * **Langkah 12**: Finance memonitor total nilai BOQ (`totalAmount` dari `boq_headers`) yang telah disesuaikan oleh Procurement untuk menyinkronkan anggaran pembayaran.
+
+6. **Tahap Pengawasan & Audit Trail (Admin Monitoring & Superadmin)**:
+   * Setiap aktivitas penting (seperti unggah berkas, unduh berkas, ubah harga BOQ, hapus berkas) dicatat ke dalam tabel `audit_logs`.
+   * **Langkah 13a**: Pengguna ber-role **Admin (Monitoring)** diberikan dashboard khusus untuk memantau data proyek, seluruh berkas, serta tabel audit log secara *Read-Only* (tidak bisa memanipulasi data).
+   * **Langkah 13b**: Pengguna ber-role **Superadmin** memiliki akses kontrol mutlak (CRUD) pada semua data proyek, dokumen fisik di server, tabel database, serta penambahan akun pengguna baru.
 
 ---
 
@@ -151,14 +222,26 @@ Aplikasi harus dijalankan menggunakan **dua terminal terpisah**:
 ---
 
 ## 🔑 Akun Default untuk Pengujian (Login)
-Setelah melakukan database seeding (`npx prisma db seed`), Anda dapat masuk dengan akun bawaan berikut:
+Setelah melakukan database seeding (`npx prisma db seed`), Anda dapat masuk dengan salah satu dari 6 akun peran bawaan berikut:
 
-* **Administrator Utama** (Akses Penuh):
-  * **Email**: `admin@asset.com`
-  * **Password**: `admin123`
-* **Staf Inventori** (Input & Update):
-  * **Email**: `staff@asset.com`
-  * **Password**: `staff123`
+* **Staf Engineering** (Upload Berkas):
+  * **Email**: `engineering@project.com`
+  * **Password**: `eng123`
+* **Staf Proyek Admin** (View & Download):
+  * **Email**: `proyekadmin@project.com`
+  * **Password**: `proyek123`
+* **Staf Procurement** (Edit Harga BOQ):
+  * **Email**: `procurement@project.com`
+  * **Password**: `proc123`
+* **Staf Finance** (View Penawaran Modal & BOQ Total):
+  * **Email**: `finance@project.com`
+  * **Password**: `fin123`
+* **Admin Monitoring** (Pengawasan Read-Only):
+  * **Email**: `adminmon@project.com`
+  * **Password**: `mon123`
+* **Super Administrator** (Akses CRUD Lengkap):
+  * **Email**: `superadmin@project.com`
+  * **Password**: `super123`
 
 ---
 
