@@ -42,7 +42,7 @@ export default function DashboardPage() {
   // States Upload Berkas (Engineering/Superadmin)
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [uploadProject, setUploadProject] = useState('');
-  const [uploadFileType, setUploadFileType] = useState<DocType>('GAMBAR');
+  const [uploadFileType, setUploadFileType] = useState<DocType>('SPK');
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   
   // Custom metadata inputs based on fileType
@@ -137,11 +137,11 @@ export default function DashboardPage() {
     formData.append('file', uploadFile);
     formData.append('projectId', uploadProject);
 
-    if (uploadFileType === 'PENAWARAN') {
+    if (uploadFileType === 'PENAWARAN_DRAFT') {
       formData.append('vendorName', vendorName);
       formData.append('quoteNumber', quoteNumber);
       formData.append('validityDate', validityDate);
-    } else if (uploadFileType === 'RFQ') {
+    } else if (uploadFileType === 'RFQ_SCAN_KOSONG') {
       formData.append('rfqNumber', rfqNumber);
       formData.append('targetDate', targetDate);
       formData.append('terms', terms);
@@ -450,9 +450,10 @@ export default function DashboardPage() {
                       <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-2xs font-bold ${
-                          doc.fileType === 'GAMBAR' ? 'bg-sky-50 text-sky-700' :
+                          doc.fileType === 'DRAWING' || doc.fileType === 'DRAWING_AS_BUILT' ? 'bg-sky-50 text-sky-700' :
                           doc.fileType === 'BOQ' ? 'bg-emerald-50 text-emerald-700' :
-                          doc.fileType === 'PENAWARAN' ? 'bg-purple-50 text-purple-700' :
+                          doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'PENAWARAN_FINAL' ? 'bg-purple-50 text-purple-700' :
+                          doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' ? 'bg-indigo-50 text-indigo-700' :
                           'bg-amber-50 text-amber-700'
                         }`}>
                           {doc.fileType}
@@ -502,14 +503,26 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-slate-800">Direktori & Pengendali Berkas Proyek</h3>
               <p className="text-xs text-slate-500 mt-1">Anda dapat melihat dan mengunduh seluruh file proyek.</p>
             </div>
-            <button
-              onClick={handleDownloadAll}
-              disabled={downloadingAll}
-              className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-600/20 transition-all disabled:opacity-50"
-            >
-              <Download className={`mr-1.5 h-4.5 w-4.5 ${downloadingAll ? 'animate-bounce' : ''}`} />
-              {downloadingAll ? 'Mengunduh...' : 'Unduh Semua Berkas (ZIP)'}
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => {
+                  setUploadFileType('SPK');
+                  setUploadModalOpen(true);
+                }}
+                className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-lg shadow-emerald-600/20 transition-all"
+              >
+                <Plus className="mr-1.5 h-4.5 w-4.5" />
+                Unggah Berkas Baru
+              </button>
+              <button
+                onClick={handleDownloadAll}
+                disabled={downloadingAll}
+                className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-lg shadow-sky-600/20 transition-all disabled:opacity-50"
+              >
+                <Download className={`mr-1.5 h-4.5 w-4.5 ${downloadingAll ? 'animate-bounce' : ''}`} />
+                {downloadingAll ? 'Mengunduh...' : 'Unduh Semua Berkas (ZIP)'}
+              </button>
+            </div>
           </div>
 
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
@@ -531,10 +544,15 @@ export default function DashboardPage() {
                 className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-sky-500"
               >
                 <option value="">Semua Tipe File</option>
-                <option value="GAMBAR">GAMBAR</option>
-                <option value="BOQ">BOQ</option>
-                <option value="PENAWARAN">PENAWARAN</option>
-                <option value="RFQ">RFQ</option>
+                <option value="SPK">SPK (Klien)</option>
+                <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Klien)</option>
+                <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
+                <option value="INVOICE">INVOICE (Klien)</option>
+                <option value="SUBKON_DOCS">SUBKON DOCS</option>
+                <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
+                <option value="DRAWING">DRAWING (Internal)</option>
+                <option value="FOTO">FOTO (Internal)</option>
+                <option value="RAB">RAB (Internal)</option>
               </select>
             </div>
 
@@ -557,9 +575,10 @@ export default function DashboardPage() {
                       <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex px-2 py-0.5 rounded-full text-2xs font-bold ${
-                          doc.fileType === 'GAMBAR' ? 'bg-sky-50 text-sky-700' :
+                          doc.fileType === 'DRAWING' || doc.fileType === 'DRAWING_AS_BUILT' ? 'bg-sky-50 text-sky-700' :
                           doc.fileType === 'BOQ' ? 'bg-emerald-50 text-emerald-700' :
-                          doc.fileType === 'PENAWARAN' ? 'bg-purple-50 text-purple-700' :
+                          doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'PENAWARAN_FINAL' ? 'bg-purple-50 text-purple-700' :
+                          doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' ? 'bg-indigo-50 text-indigo-700' :
                           'bg-amber-50 text-amber-700'
                         }`}>
                           {doc.fileType}
@@ -602,17 +621,6 @@ export default function DashboardPage() {
               <h3 className="text-lg font-bold text-slate-800">Evaluasi Harga Satuan BOQ</h3>
               <p className="text-xs text-slate-500">Anda dapat mengubah harga satuan item BOQ yang diupload oleh Engineering.</p>
             </div>
-            <button
-              onClick={() => {
-                setUploadFileType('PO');
-                setUploadProject('');
-                setUploadModalOpen(true);
-              }}
-              className="inline-flex items-center px-4 py-2.5 text-sm font-semibold bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-lg shadow-indigo-600/20 transition-all"
-            >
-              <Plus className="mr-1.5 h-4.5 w-4.5" />
-              Unggah PO Baru
-            </button>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -786,7 +794,7 @@ export default function DashboardPage() {
                 <h4 className="text-sm font-bold text-slate-700">Daftar Penawaran Vendor</h4>
               </div>
               <div className="space-y-2">
-                {documents.filter(d => d.fileType === 'PENAWARAN').map((doc) => (
+                {documents.filter(d => d.fileType === 'PENAWARAN_FINAL' || d.fileType === 'PENAWARAN_DRAFT').map((doc) => (
                   <div key={doc.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all flex justify-between items-center">
                     <div>
                       <h5 className="text-xs font-bold text-slate-700">{doc.fileName}</h5>
@@ -802,7 +810,7 @@ export default function DashboardPage() {
                     </button>
                   </div>
                 ))}
-                {documents.filter(d => d.fileType === 'PENAWARAN').length === 0 && (
+                 {documents.filter(d => d.fileType === 'PENAWARAN_FINAL' || d.fileType === 'PENAWARAN_DRAFT').length === 0 && (
                   <p className="text-xs text-slate-400 text-center py-6">Tidak ada penawaran vendor yang diunggah.</p>
                 )}
               </div>
@@ -853,7 +861,7 @@ export default function DashboardPage() {
                 <h4 className="text-sm font-bold text-slate-700">Pelepasan Purchase Order (PO)</h4>
               </div>
               <div className="space-y-2">
-                {documents.filter(d => d.fileType === 'PO').map((doc) => {
+                 {documents.filter(d => d.fileType === 'SUBKON_DOCS').map((doc) => {
                   const isPending = doc.status === 'PO_PENDING';
                   return (
                     <div key={doc.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-all flex flex-col justify-between space-y-3">
@@ -889,7 +897,7 @@ export default function DashboardPage() {
                     </div>
                   );
                 })}
-                {documents.filter(d => d.fileType === 'PO').length === 0 && (
+                 {documents.filter(d => d.fileType === 'SUBKON_DOCS').length === 0 && (
                   <p className="text-xs text-slate-400 text-center py-6">Belum ada dokumen PO diupload.</p>
                 )}
               </div>
@@ -1033,13 +1041,21 @@ export default function DashboardPage() {
                 <select
                   value={filterType}
                   onChange={(e) => setFilterType(e.target.value)}
-                  className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm"
+                  className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none"
                 >
                   <option value="">Semua Tipe File</option>
-                  <option value="GAMBAR">GAMBAR</option>
-                  <option value="BOQ">BOQ</option>
-                  <option value="PENAWARAN">PENAWARAN</option>
-                  <option value="RFQ">RFQ</option>
+                  <option value="SPK">SPK (Klien)</option>
+                  <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Klien)</option>
+                  <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
+                  <option value="INVOICE">INVOICE (Klien)</option>
+                  <option value="SUBKON_DOCS">SUBKON DOCS</option>
+                  <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
+                  <option value="DRAWING">DRAWING (Internal)</option>
+                  <option value="FOTO">FOTO (Internal)</option>
+                  <option value="RAB">RAB (Internal)</option>
+                  <option value="PENAWARAN_DRAFT">PENAWARAN DRAFT (Excel)</option>
+                  <option value="BOQ">BOQ (Cost Material Excel)</option>
+                  <option value="FORECAST_COST">FORECAST COST (Excel)</option>
                 </select>
                 <button
                   onClick={handleDownloadAll}
@@ -1071,9 +1087,10 @@ export default function DashboardPage() {
                         <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
                         <td className="py-4 px-6">
                           <span className={`inline-flex px-2 py-0.5 rounded-full text-2xs font-bold ${
-                            doc.fileType === 'GAMBAR' ? 'bg-sky-50 text-sky-700' :
+                            doc.fileType === 'DRAWING' || doc.fileType === 'DRAWING_AS_BUILT' ? 'bg-sky-50 text-sky-700' :
                             doc.fileType === 'BOQ' ? 'bg-emerald-50 text-emerald-700' :
-                            doc.fileType === 'PENAWARAN' ? 'bg-purple-50 text-purple-700' :
+                            doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'PENAWARAN_FINAL' ? 'bg-purple-50 text-purple-700' :
+                            doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' ? 'bg-indigo-50 text-indigo-700' :
                             'bg-amber-50 text-amber-700'
                           }`}>
                             {doc.fileType}
@@ -1208,11 +1225,42 @@ export default function DashboardPage() {
                     onChange={(e) => setUploadFileType(e.target.value as DocType)}
                     className="w-full bg-slate-50/50 border border-slate-200 rounded-lg px-3 py-2 focus:outline-none"
                   >
-                    <option value="GAMBAR">GAMBAR (Semua Ekstensi)</option>
-                    <option value="BOQ">BOQ (Excel)</option>
-                    <option value="PENAWARAN">PENAWARAN (Excel)</option>
-                    <option value="RFQ">RFQ (Excel)</option>
-                    <option value="PO">PO (Purchase Order)</option>
+                    {isEngineering && (
+                      <>
+                        <option value="DRAWING">DRAWING (Internal Gambar)</option>
+                        <option value="RAB">RAB (Internal)</option>
+                        <option value="PENAWARAN_DRAFT">PENAWARAN DRAFT (Excel)</option>
+                        <option value="BOQ">BOQ (Cost Material Excel)</option>
+                        <option value="FORECAST_COST">FORECAST COST (Excel Estimasi)</option>
+                        <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
+                        <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
+                      </>
+                    )}
+                    {isProyekAdmin && (
+                      <>
+                        <option value="SPK">SPK (Klien)</option>
+                        <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Scan, PDF)</option>
+                        <option value="INVOICE">INVOICE (Klien)</option>
+                        <option value="SUBKON_DOCS">SUBKON DOCS (SPK, Invoice, RFQ Final)</option>
+                        <option value="FOTO">FOTO (Internal)</option>
+                      </>
+                    )}
+                    {isSuperAdmin && (
+                      <>
+                        <option value="SPK">SPK (Klien)</option>
+                        <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Scan, PDF)</option>
+                        <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
+                        <option value="INVOICE">INVOICE (Klien)</option>
+                        <option value="SUBKON_DOCS">SUBKON DOCS (SPK, Invoice, RFQ Final)</option>
+                        <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
+                        <option value="DRAWING">DRAWING (Internal Gambar)</option>
+                        <option value="FOTO">FOTO (Internal)</option>
+                        <option value="RAB">RAB (Internal)</option>
+                        <option value="PENAWARAN_DRAFT">PENAWARAN DRAFT (Excel)</option>
+                        <option value="BOQ">BOQ (Cost Material Excel)</option>
+                        <option value="FORECAST_COST">FORECAST COST (Excel Estimasi)</option>
+                      </>
+                    )}
                   </select>
                 </div>
 
@@ -1228,8 +1276,8 @@ export default function DashboardPage() {
                   <p className="text-3xs text-slate-400 mt-1">Gunakan format Excel (.xlsx, .xls) untuk dokumen BOQ, Penawaran, dan RFQ agar dapat di-parse otomatis.</p>
                 </div>
 
-                {/* Dynamic Fields for PENAWARAN */}
-                {uploadFileType === 'PENAWARAN' && (
+                {/* Dynamic Fields for PENAWARAN_DRAFT */}
+                {uploadFileType === 'PENAWARAN_DRAFT' && (
                   <div className="sm:col-span-2 border-t border-slate-100 pt-3 space-y-3">
                     <p className="font-bold text-sky-700">Metadata Tambahan Penawaran Vendor</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1267,8 +1315,8 @@ export default function DashboardPage() {
                   </div>
                 )}
 
-                {/* Dynamic Fields for RFQ */}
-                {uploadFileType === 'RFQ' && (
+                {/* Dynamic Fields for RFQ_SCAN_KOSONG */}
+                {uploadFileType === 'RFQ_SCAN_KOSONG' && (
                   <div className="sm:col-span-2 border-t border-slate-100 pt-3 space-y-3">
                     <p className="font-bold text-sky-700">Metadata Tambahan RFQ</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

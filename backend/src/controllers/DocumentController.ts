@@ -32,6 +32,34 @@ export class DocumentController {
       }
       const docType = docTypeString as DocType;
 
+      // Validasi hak akses unggah berdasarkan Peran
+      const userRole = req.user!.role;
+      if (userRole !== Role.SUPERADMIN) {
+        let allowedUploadTypes: DocType[] = [];
+        if (userRole === Role.ENGINEERING) {
+          allowedUploadTypes = [
+            DocType.DRAWING,
+            DocType.RAB,
+            DocType.PENAWARAN_DRAFT,
+            DocType.BOQ,
+            DocType.FORECAST_COST,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+          ];
+        } else if (userRole === Role.PROYEK_ADMIN) {
+          allowedUploadTypes = [
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO,
+          ];
+        }
+        if (!allowedUploadTypes.includes(docType)) {
+          throw new ForbiddenError('Anda tidak memiliki hak untuk mengunggah jenis berkas ini');
+        }
+      }
+
       // Buat data Document di database
       const document = await prisma.document.create({
         data: {
@@ -41,7 +69,7 @@ export class DocumentController {
           filePath: file.path,
           fileSize: file.size,
           uploadedById: req.user!.id,
-          status: docType === DocType.PO ? DocStatus.PO_PENDING : DocStatus.PENDING,
+          status: docType === DocType.SUBKON_DOCS ? DocStatus.PO_PENDING : DocStatus.PENDING,
         },
       });
 
@@ -53,7 +81,7 @@ export class DocumentController {
       if (isExcel) {
         if (docType === DocType.BOQ) {
           parseResult = await ExcelParserService.parseBoq(file.path, document.id);
-        } else if (docType === DocType.PENAWARAN) {
+        } else if (docType === DocType.PENAWARAN_DRAFT) {
           const { vendorName, quoteNumber, validityDate } = req.body;
           if (!vendorName) {
             throw new BadRequestError('Nama vendor wajib diisi untuk upload penawaran');
@@ -66,7 +94,7 @@ export class DocumentController {
             quoteNumber || '',
             validDate
           );
-        } else if (docType === DocType.RFQ) {
+        } else if (docType === DocType.RFQ_SCAN_KOSONG) {
           const { rfqNumber, targetDate, terms } = req.body;
           if (!rfqNumber) {
             throw new BadRequestError('Nomor RFQ wajib diisi');
@@ -111,7 +139,65 @@ export class DocumentController {
    */
   static async getAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const userRole = req.user!.role;
+      let whereClause: any = {};
+
+      if (userRole !== Role.SUPERADMIN && userRole !== Role.ADMIN_MONITORING) {
+        let allowedTypes: DocType[] = [];
+
+        if (userRole === Role.ENGINEERING) {
+          allowedTypes = [
+            DocType.DRAWING,
+            DocType.RAB,
+            DocType.PENAWARAN_DRAFT,
+            DocType.BOQ,
+            DocType.FORECAST_COST,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO
+          ];
+        } else if (userRole === Role.PROYEK_ADMIN) {
+          allowedTypes = [
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.DRAWING,
+            DocType.RAB
+          ];
+        } else if (userRole === Role.PROCUREMENT) {
+          allowedTypes = [
+            DocType.BOQ,
+            DocType.PENAWARAN_FINAL,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG
+          ];
+        } else if (userRole === Role.FINANCE) {
+          allowedTypes = [
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.RAB,
+            DocType.PENAWARAN_DRAFT,
+            DocType.BOQ,
+            DocType.FORECAST_COST
+          ];
+        }
+
+        whereClause = {
+          fileType: { in: allowedTypes }
+        };
+      }
+
       const documents = await prisma.document.findMany({
+        where: whereClause,
         include: {
           project: { select: { name: true } },
           uploadedBy: { select: { name: true, role: true } },
@@ -139,6 +225,62 @@ export class DocumentController {
       });
 
       if (!document) throw new NotFoundError('Dokumen tidak ditemukan');
+
+      // Validasi Hak Akses Unduh berdasarkan Peran
+      const userRole = req.user!.role;
+      if (userRole !== Role.SUPERADMIN && userRole !== Role.ADMIN_MONITORING) {
+        let allowedTypes: DocType[] = [];
+        if (userRole === Role.ENGINEERING) {
+          allowedTypes = [
+            DocType.DRAWING,
+            DocType.RAB,
+            DocType.PENAWARAN_DRAFT,
+            DocType.BOQ,
+            DocType.FORECAST_COST,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO
+          ];
+        } else if (userRole === Role.PROYEK_ADMIN) {
+          allowedTypes = [
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.DRAWING,
+            DocType.RAB
+          ];
+        } else if (userRole === Role.PROCUREMENT) {
+          allowedTypes = [
+            DocType.BOQ,
+            DocType.PENAWARAN_FINAL,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG
+          ];
+        } else if (userRole === Role.FINANCE) {
+          allowedTypes = [
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.RAB,
+            DocType.PENAWARAN_DRAFT,
+            DocType.BOQ,
+            DocType.FORECAST_COST
+          ];
+        }
+
+        if (!allowedTypes.includes(document.fileType)) {
+          throw new ForbiddenError('Anda tidak memiliki hak untuk mengunduh tipe berkas ini');
+        }
+      }
+
       if (!fs.existsSync(document.filePath)) {
         throw new NotFoundError('Berkas fisik tidak ditemukan di server');
       }
@@ -163,7 +305,31 @@ export class DocumentController {
    */
   static async downloadAll(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
+      const userRole = req.user!.role;
+      let whereClause: any = {};
+
+      if (userRole !== Role.SUPERADMIN && userRole !== Role.ADMIN_MONITORING) {
+        let allowedTypes: DocType[] = [];
+        if (userRole === Role.PROYEK_ADMIN) {
+          allowedTypes = [
+            DocType.SPK,
+            DocType.PENAWARAN_FINAL,
+            DocType.INVOICE,
+            DocType.SUBKON_DOCS,
+            DocType.FOTO,
+            DocType.DRAWING_AS_BUILT,
+            DocType.RFQ_SCAN_KOSONG,
+            DocType.DRAWING,
+            DocType.RAB
+          ];
+        }
+        whereClause = {
+          fileType: { in: allowedTypes }
+        };
+      }
+
       const documents = await prisma.document.findMany({
+        where: whereClause,
         include: {
           project: { select: { name: true } },
           uploadedBy: { select: { name: true } },

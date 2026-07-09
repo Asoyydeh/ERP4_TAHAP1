@@ -21,26 +21,26 @@ flowchart TD
     classDef folder fill:#ffe0b2,stroke:#f57c00,stroke-width:2px,color:#e65100;
 
     %% Roles
-    ENG[1. Engineering <br> Creator/Editor]:::roleEng
-    PR_ADM[4. Proyek Admin <br> Viewer/Downloader]:::roleProy
-    PROC[5. Procurement <br> Editor BOQ & Upload PO]:::roleProc
-    FIN[6. Finance <br> Verifier & Release PO]:::roleFin
-    ADM_MON[7. Admin Monitoring <br> Read-Only Monitor]:::roleAdmin
-    S_ADM[8. Superadmin <br> Full CRUD & Users]:::roleAdmin
+    ENG[1. Engineering <br> Upload/Edit: Drawing, RAB, Penawaran Draft, BOQ, Forecast Cost, Drawing As-Built, RFQ Scan/Kosong]:::roleEng
+    PR_ADM[2. Proyek Admin <br> Upload/Edit: SPK, Penawaran Final, Invoice, Subkon Docs, Foto]:::roleProy
+    PROC[3. Procurement <br> Edit Rate BOQ]:::roleProc
+    FIN[4. Finance <br> View & Release PO]:::roleFin
+    ADM_MON[5. Admin Monitoring <br> Read-Only Monitor]:::roleAdmin
+    S_ADM[6. Superadmin <br> Full CRUD & Users]:::roleAdmin
 
     %% Core Data Flow
-    ENG -->|Upload Berkas| MULTER[2. Upload Middleware & Controller]:::process
-    PROC -->|Upload PO Baru| MULTER
+    ENG -->|Upload Berkas| MULTER[Upload Middleware & Controller]:::process
+    PR_ADM -->|Upload Berkas| MULTER
     
     MULTER -->|Simpan File Fisik| STORE[(Storage Terisolasi <br> /uploads/users/userId/)]:::folder
     MULTER -->|Tulis Metadata Berkas| DB_DOCS[(Tabel: documents)]:::db
 
-    DB_DOCS -->|Otomatis Penguraian Excel| PARSER[3. ExcelParserService]:::process
+    DB_DOCS -->|Otomatis Penguraian Excel| PARSER[ExcelParserService]:::process
     STORE -.->|Baca Berkas Excel| PARSER
     PARSER -->|Tulis Data Detail| DB_DETAILS[(Tabel Detail: BOQ, Penawaran, RFQ)]:::db
 
     %% Roles Actions
-    PR_ADM -->|Unduh Semua Berkas ZIP| STORE
+    PR_ADM -->|Unduh Berkas ZIP| STORE
     
     PROC -->|Update Harga Satuan BOQ| DB_DETAILS
     
@@ -56,12 +56,12 @@ flowchart TD
 
 | Pengguna / Peran (Role) | Hak Akses (Access Control) | Fungsi & Tanggung Jawab Utama |
 | :--- | :--- | :--- |
-| **Engineering** | CRUD milik sendiri | - Mengunggah berkas Gambar Teknis.<br>- Mengunggah Penawaran Vendor (Excel + PDF) melalui Form Modal.<br>- Mengunggah berkas BOQ & RFQ (Excel).<br>- Hanya dapat memanipulasi berkas di folder terisolasi miliknya sendiri. |
-| **Proyek Admin** | Read-Only | - Melihat daftar seluruh berkas proyek aktif.<br>- Mengunduh seluruh berkas proyek lapangan (bisa sekaligus dalam format ZIP).<br>- **Tidak memiliki hak akses** untuk mengubah data, menambah proyek, atau menghapus berkas. |
-| **Procurement** | Read + Edit BOQ & PO | - Melihat daftar berkas proyek.<br>- Membuka tab evaluasi dan mengubah kolom harga satuan aktual (`rateProcurement`) di berkas BOQ.<br>- Memberikan catatan detail (*notes*) negosiasi item pekerjaan.<br>- Mengunggah berkas Purchase Order (PO) baru yang otomatis berstatus `PO_PENDING`. |
-| **Finance** | Read-Only + Release PO | - Memverifikasi nilai penawaran vendor melalui pop-up modal detail hasil pembacaan Excel.<br>- Memantau total nilai akhir anggaran BOQ yang telah disesuaikan oleh Procurement.<br>- Melakukan verifikasi dan rilis berkas Purchase Order (PO), mengubah statusnya dari `PO_PENDING` menjadi `PO_RELEASED`. |
-| **Admin (Monitoring)** | Read-Only Global | - Memantau seluruh direktori penyimpanan fisik pengguna.<br>- Memantau seluruh isi tabel transaksi database.<br>- Memantau kronologi log audit sistem global.<br>- **Tidak memiliki tombol/fitur** untuk mengubah, menambah, atau menghapus data (Sistem Terkunci). |
-| **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik.<br>- Memantau riwayat log audit aktivitas.<br>- Melakukan override/koreksi data jika terjadi kesalahan operasional staf. |
+| **Engineering** | CRUD milik sendiri (untuk jenis dokumen tertentu) | - Mengunggah & mengedit berkas Drawing, RAB, Penawaran Draft (Excel), BOQ (Excel), Forecast Cost (Excel), Drawing As-Built, dan RFQ Scan / Kosong.<br>- Melihat berkas SPK, Penawaran Final, Subkon Docs, dan Foto. |
+| **Proyek Admin** | CRUD milik sendiri (untuk jenis dokumen tertentu) | - Mengunggah & mengedit berkas SPK, Penawaran Final, Invoice, Subkon Docs, dan Foto.<br>- Melihat & mengunduh berkas Drawing As-Built, RFQ Scan / Kosong, Drawing, dan RAB. |
+| **Procurement** | Read + Edit BOQ | - Melihat berkas Penawaran Final, Drawing As-Built, RFQ Scan / Kosong, dan BOQ.<br>- Membuka tab evaluasi dan mengubah kolom harga satuan aktual (`rateProcurement`) di berkas BOQ. |
+| **Finance** | Read-Only | - Melihat berkas Penawaran Final, Invoice, Subkon Docs, RFQ Scan / Kosong, RAB, Penawaran Draft, BOQ, dan Forecast Cost.<br>- Melakukan verifikasi dan rilis berkas Purchase Order (PO) / Subkon Docs dari status `PO_PENDING` menjadi `PO_RELEASED`. |
+| **Admin (Monitoring)** | Read-Only Global | - Memantau seluruh direktori penyimpanan fisik pengguna.<br>- Memantau seluruh isi tabel transaksi database.<br>- Memantau kronologi log audit sistem global. |
+| **Superadmin** | Full CRUD | - Manajemen akun staf (mendaftarkan user baru & mengatur role).<br>- Akses penuh CRUD (Create, Read, Update, Delete) pada seluruh data proyek dan file fisik. |
 
 
 ### Penjelasan Detil Alur Kerja Proyek (Step-by-Step):
@@ -166,10 +166,18 @@ enum Role {
 
 // Jenis dokumen yang diupload
 enum DocType {
-  GAMBAR
-  PENAWARAN
+  SPK
+  PENAWARAN_FINAL
+  DRAWING_AS_BUILT
+  INVOICE
+  SUBKON_DOCS
+  RFQ_SCAN_KOSONG
+  DRAWING
+  FOTO
+  RAB
+  PENAWARAN_DRAFT
   BOQ
-  RFQ
+  FORECAST_COST
 }
 
 // Status persetujuan/proses dokumen
@@ -378,10 +386,18 @@ CREATE TYPE "Role" AS ENUM (
 );
 
 CREATE TYPE "DocType" AS ENUM (
-  'GAMBAR', 
-  'PENAWARAN', 
-  'BOQ', 
-  'RFQ'
+  'SPK', 
+  'PENAWARAN_FINAL', 
+  'DRAWING_AS_BUILT', 
+  'INVOICE',
+  'SUBKON_DOCS',
+  'RFQ_SCAN_KOSONG',
+  'DRAWING',
+  'FOTO',
+  'RAB',
+  'PENAWARAN_DRAFT',
+  'BOQ',
+  'FORECAST_COST'
 );
 
 CREATE TYPE "DocStatus" AS ENUM (
@@ -585,11 +601,18 @@ Sistem membedakan izin akses berdasarkan peran masing-masing demi menjaga integr
 | **Folder User Sendiri** | CRUD | R | R | R | R | CRUD |
 | **Folder User Lain** | - | R (Download) | R (Download) | R (Download) | R | CRUD |
 | **Unduh Semua Berkas (ZIP)** | - | R (Download ZIP) | - | - | - | R (Download ZIP) |
-| **Gambar Proyek** | CRUD | R (Download) | - | - | R | CRUD |
-| **Penawaran (Excel + PDF)** | CRUD | R (Download) | R | R (Modal View) | R | CRUD |
-| **BOQ - Rate Engineering** | CRUD | R | R | R | R | CRUD |
-| **BOQ - Rate Procurement**| - | R | RU (Edit Rate) | R (Total Only) | R | CRUD |
-| **RFQ (Request for Quotation)**| CRUD | R (Download) | R | - | R | CRUD |
+| **SPK (Klien)** | R | CRUD | - | - | R | CRUD |
+| **Penawaran Final (Klien)** | R | CRUD | R | R | R | CRUD |
+| **Drawing As-Built (Klien)** | CRUD | R | R | - | R | CRUD |
+| **Invoice (Klien)** | - | CRUD | - | R | R | CRUD |
+| **Subkon Docs** | R | CRUD | - | R | R | CRUD |
+| **RFQ Scan / Kosong** | CRUD | R | R | R | R | CRUD |
+| **Drawing (Internal)** | CRUD | R | - | - | R | CRUD |
+| **Foto (Internal)** | R | CRUD | - | - | R | CRUD |
+| **RAB (Internal)** | CRUD | R | - | R | R | CRUD |
+| **Penawaran Draft** | CRUD | - | - | R | R | CRUD |
+| **BOQ** | CRUD | - | RU (Edit Rate) | R | R | CRUD |
+| **Forecast Cost** | CRUD | - | - | R | R | CRUD |
 | **Manajemen Akun User** | - | - | - | - | - | CRUD |
 | **Melihat Log Aktivitas** | - | - | - | - | R (Semua Log) | CRUD |
 

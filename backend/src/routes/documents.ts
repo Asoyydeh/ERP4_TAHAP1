@@ -20,10 +20,10 @@ router.get('/download/:id', DocumentController.download);
 // Hapus berkas (Proteksi owner/Superadmin divalidasi di controller)
 router.delete('/:id', DocumentController.delete);
 
-// Upload berkas proyek (Hanya ENGINEERING dan SUPERADMIN)
+// Upload berkas proyek (ENGINEERING, PROYEK_ADMIN, dan SUPERADMIN)
 router.post(
   '/upload/:fileType',
-  authorize([Role.ENGINEERING, Role.PROCUREMENT, Role.SUPERADMIN]),
+  authorize([Role.ENGINEERING, Role.PROYEK_ADMIN, Role.SUPERADMIN]),
   upload.single('file'),
   DocumentController.upload
 );

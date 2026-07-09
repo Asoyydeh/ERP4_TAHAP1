@@ -120,10 +120,10 @@ export default function DocumentsPage() {
       if (doc.fileType === 'BOQ') {
         const res = await api.get(`/documents/boq/${doc.id}`);
         setBoqDetails(res.data.data);
-      } else if (doc.fileType === 'PENAWARAN') {
+      } else if (doc.fileType === 'PENAWARAN_DRAFT') {
         const res = await api.get(`/documents/penawaran/${doc.id}`);
         setPenawaranDetails(res.data.data);
-      } else if (doc.fileType === 'RFQ') {
+      } else if (doc.fileType === 'RFQ_SCAN_KOSONG') {
         const res = await api.get(`/documents/rfq/${doc.id}`);
         setRfqDetails(res.data.data);
       }
@@ -205,10 +205,18 @@ export default function DocumentsPage() {
             className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none text-sm cursor-pointer"
           >
             <option value="">Semua Tipe Dokumen</option>
-            <option value="GAMBAR">Gambar Proyek</option>
-            <option value="BOQ">BOQ (Bill of Quantity)</option>
-            <option value="PENAWARAN">Penawaran Vendor</option>
-            <option value="RFQ">RFQ (Request for Quotation)</option>
+            <option value="SPK">SPK (Klien)</option>
+            <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Klien)</option>
+            <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
+            <option value="INVOICE">INVOICE (Klien)</option>
+            <option value="SUBKON_DOCS">SUBKON DOCS</option>
+            <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
+            <option value="DRAWING">DRAWING (Internal Gambar)</option>
+            <option value="FOTO">FOTO (Internal)</option>
+            <option value="RAB">RAB (Internal)</option>
+            <option value="PENAWARAN_DRAFT">PENAWARAN DRAFT (Excel)</option>
+            <option value="BOQ">BOQ (Cost Material Excel)</option>
+            <option value="FORECAST_COST">FORECAST COST (Excel)</option>
           </select>
         </div>
       </div>
@@ -240,16 +248,15 @@ export default function DocumentsPage() {
                   const isOwner = doc.uploadedById === user?.id;
                   const canDelete = user?.role === 'SUPERADMIN' || isOwner;
                   const isExcel = doc.fileName.endsWith('.xlsx') || doc.fileName.endsWith('.xls');
-                  const hasDetails = isExcel && (doc.fileType === 'BOQ' || doc.fileType === 'PENAWARAN' || doc.fileType === 'RFQ');
+                  const hasDetails = isExcel && (doc.fileType === 'BOQ' || doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'RFQ_SCAN_KOSONG');
 
                   return (
                     <tr key={doc.id} className="hover:bg-slate-50/30 transition-all">
                       <td className="py-4 px-6 font-semibold text-slate-800 flex items-center space-x-2.5">
-                        {doc.fileType === 'GAMBAR' && <Image className="h-5 w-5 text-sky-500 shrink-0" />}
+                        {(doc.fileType === 'DRAWING' || doc.fileType === 'DRAWING_AS_BUILT') && <Image className="h-5 w-5 text-sky-500 shrink-0" />}
                         {doc.fileType === 'BOQ' && <FileSpreadsheet className="h-5 w-5 text-emerald-600 shrink-0" />}
-                        {doc.fileType === 'PENAWARAN' && <FileCheck className="h-5 w-5 text-purple-600 shrink-0" />}
-                        {doc.fileType === 'RFQ' && <FileText className="h-5 w-5 text-amber-500 shrink-0" />}
-                        {doc.fileType === 'PO' && <FileText className="h-5 w-5 text-indigo-500 shrink-0" />}
+                        {(doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'PENAWARAN_FINAL') && <FileCheck className="h-5 w-5 text-purple-600 shrink-0" />}
+                        {(doc.fileType === 'RFQ_SCAN_KOSONG' || doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' || doc.fileType === 'RAB' || doc.fileType === 'FORECAST_COST' || doc.fileType === 'FOTO') && <FileText className="h-5 w-5 text-slate-500 shrink-0" />}
                         <span className="truncate max-w-[200px]" title={doc.fileName}>{doc.fileName}</span>
                       </td>
                       <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>

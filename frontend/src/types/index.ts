@@ -1,6 +1,6 @@
 export type Role = 'ENGINEERING' | 'PROYEK_ADMIN' | 'PROCUREMENT' | 'FINANCE' | 'ADMIN_MONITORING' | 'SUPERADMIN';
 
-export type DocType = 'GAMBAR' | 'PENAWARAN' | 'BOQ' | 'RFQ' | 'PO';
+export type DocType = 'SPK' | 'PENAWARAN_FINAL' | 'DRAWING_AS_BUILT' | 'INVOICE' | 'SUBKON_DOCS' | 'RFQ_SCAN_KOSONG' | 'DRAWING' | 'FOTO' | 'RAB' | 'PENAWARAN_DRAFT' | 'BOQ' | 'FORECAST_COST';
 export type DocStatus = 'DRAFT' | 'PENDING' | 'REVISED_BY_PROCUREMENT' | 'APPROVED' | 'REJECTED' | 'PO_PENDING' | 'PO_RELEASED';
 
 export interface User {
