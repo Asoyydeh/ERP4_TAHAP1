@@ -1,10 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model User {
+  id           String       @id @default(uuid())
+  name         String
+  email        String       @unique
+  passwordHash String       @map("password_hash")
+  role         Role         @default(ENGINEERING)
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  address      String?
+  photoUrl     String?      @map("photo_url")
+  managerId    String?      @map("manager_id")
+  manager      User?        @relation("UserToStaff", fields: [managerId], references: [id])
+  staffs       User[]       @relation("UserToStaff")
+  auditLogs    AuditLog[]
+  documents    Document[]
+  folders      UserFolder[]
+  attendances  Attendance[]
+  workReports  WorkReport[]
+  sentMessages     ChatMessage[] @relation("SentMessages")
+  receivedMessages ChatMessage[] @relation("ReceivedMessages")
+  companyFormDocuments CompanyFormDocument[]
+
+  @@map("users")
+}
+
+model UserFolder {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  folderPath String   @unique @map("folder_path")
+  createdAt  DateTime @default(now()) @map("created_at")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_folders")
+}
+
+model Project {
+  id              String     @id @default(uuid())
+  name            String
+  description     String?
+  createdAt       DateTime   @default(now()) @map("created_at")
+  code            String     @default("")
+  endDate         DateTime?  @map("end_date")
+  progress        Int        @default(0)
+  remarks         String?
+  startDate       DateTime?  @map("start_date")
+  sequence        Int        @default(autoincrement())
+  
+  // Penawaran
+  penawaranPicId  String?    @map("penawaran_pic_id")
+  penawaranDueDate DateTime? @map("penawaran_due_date")
+  
+  // BOQ
+  boqPicId        String?    @map("boq_pic_id")
+  boqDueDate      DateTime?  @map("boq_due_date")
+  
+  // RFQ
+  rfqPicId        String?    @map("rfq_pic_id")
+  rfqDueDate      DateTime?  @map("rfq_due_date")
+
+  // SPK
+  spkPicId        String?    @map("spk_pic_id")
+  spkDueDate      DateTime?  @map("spk_due_date")
+
+  // Progress
+  progressPicId   String?    @map("progress_pic_id")
+  progressDueDate DateTime?  @map("progress_due_date")
+
+  // Invoice
+  invoicePicId    String?    @map("invoice_pic_id")
+  invoiceDueDate  DateTime?  @map("invoice_due_date")
+
+  documents       Document[]
+  jobs            ProjectJob[]
+  projectSubkons  ProjectSubkon[]
+
+  @@map("projects")
+}
+
+model Document {
+  id               String            @id @default(uuid())
+  projectId        String            @map("project_id")
+  fileName         String            @map("file_name")
+  fileType         DocType           @map("file_type")
+  filePath         String            @map("file_path")
+  fileSize         Int               @map("file_size")
+  uploadedById     String            @map("uploaded_by_id")
+  status           DocStatus         @default(DRAFT)
+  subFolderName    String?           @map("sub_folder_name")
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @updatedAt @map("updated_at")
+  boqHeaders       BoqHeader[]
+  project          Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  uploadedBy       User              @relation(fields: [uploadedById], references: [id])
+  penawaranHeaders PenawaranHeader[]
+  rfqHeaders       RfqHeader[]
+
+  @@map("documents")
+}
+
+model ProjectJob {
+  id              String   @id @default(uuid())
+  projectId       String   @map("project_id")
+  uraianPekerjaan String?  @map("uraian_pekerjaan")
+  rfqDate         String?  @map("rfq_date")
+  progress        String?
+  subkon1Nama     String?  @map("subkon1_nama")
+  subkon1Status   String?  @map("subkon1_status")
+  subkon2Nama     String?  @map("subkon2_nama")
+  subkon2Status   String?  @map("subkon2_status")
+  subkon3Nama     String?  @map("subkon3_nama")
+  subkon3Status   String?  @map("subkon3_status")
+  remarks         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_jobs")
+}
+
+model BoqHeader {
+  id          String    @id @default(uuid())
+  documentId  String    @map("document_id")
+  totalAmount Float     @default(0) @map("total_amount")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  items       BoqItem[]
+
+  @@map("boq_headers")
+}
+
+model BoqItem {
+  id              String    @id @default(uuid())
+  boqHeaderId     String    @map("boq_header_id")
+  wbsCode         String?   @map("wbs_code")
+  description     String
+  quantity        Float
+  unit            String
+  rateEngineering Float     @map("rate_engineering")
+  rateProcurement Float     @map("rate_procurement")
+  totalPrice      Float     @map("total_price")
+  notes           String?
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+  boqHeader       BoqHeader @relation(fields: [boqHeaderId], references: [id], onDelete: Cascade)
+
+  @@map("boq_items")
+}
+
+model PenawaranHeader {
+  id           String          @id @default(uuid())
+  documentId   String          @map("document_id")
+  vendorName   String          @map("vendor_name")
+  quoteNumber  String?         @map("quote_number")
+  totalOffer   Float           @map("total_offer")
+  validityDate DateTime?       @map("validity_date")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  document     Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  items        PenawaranItem[]
+
+  @@map("penawaran_headers")
+}
+
+model PenawaranItem {
+  id                String          @id @default(uuid())
+  penawaranHeaderId String          @map("penawaran_header_id")
+  itemNo            Int             @map("item_no")
+  description       String
+  quantity          Float
+  unit              String
+  unitPrice         Float           @map("unit_price")
+  totalPrice        Float           @map("total_price")
+  notes             String?
+  penawaranHeader   PenawaranHeader @relation(fields: [penawaranHeaderId], references: [id], onDelete: Cascade)
+
+  @@map("penawaran_items")
+}
+
+model RfqHeader {
+  id         String    @id @default(uuid())
+  documentId String    @map("document_id")
+  rfqNumber  String    @unique @map("rfq_number")
+  targetDate DateTime? @map("target_date")
+  terms      String?
+  createdAt  DateTime  @default(now()) @map("created_at")
+  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  items      RfqItem[]
+
+  @@map("rfq_headers")
+}
+
+model RfqItem {
+  id             String    @id @default(uuid())
+  rfqHeaderId    String    @map("rfq_header_id")
+  itemNo         Int       @map("item_no")
+  description    String
+  quantity       Float
+  unit           String
+  specifications String?
+  notes          String?
+  rfqHeader      RfqHeader @relation(fields: [rfqHeaderId], references: [id], onDelete: Cascade)
+
+  @@map("rfq_items")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?  @map("user_id")
+  actionType  String   @map("action_type")
+  tableName   String   @map("table_name")
+  recordId    String   @map("record_id")
+  description String
+  oldValues   String?  @map("old_values")
+  newValues   String?  @map("new_values")
+  ipAddress   String?  @map("ip_address")
+  timestamp   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
 }
 
 enum Role {
@@ -14,6 +236,11 @@ enum Role {
   FINANCE
   ADMIN_MONITORING
   SUPERADMIN
+  HRD
+  GA
+  STAFF_GA
+  PROJECT_MANAGER
+  SUPERVISOR
 }
 
 enum DocType {
@@ -41,160 +268,156 @@ enum DocStatus {
   PO_RELEASED
 }
 
-model User {
-  id           String      @id @default(uuid())
-  name         String
-  email        String      @unique
-  passwordHash String      @map("password_hash")
-  role         Role        @default(ENGINEERING)
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-  folders      UserFolder[]
-  documents    Document[]
-  auditLogs    AuditLog[]
+model Attendance {
+  id        String    @id @default(uuid())
+  userId    String    @map("user_id")
+  date      DateTime  @db.Date
+  checkIn   DateTime? @map("check_in")
+  checkOut  DateTime? @map("check_out")
+  status    String    @default("HADIR") // HADIR, SAKIT, IZIN, ALPA
+  notes     String?
+  photoUrl  String?   @map("photo_url")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("users")
+  @@map("attendances")
 }
 
-model UserFolder {
-  id         String   @id @default(uuid())
-  userId     String   @map("user_id")
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  folderPath String   @unique @map("folder_path")
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@map("user_folders")
-}
-
-model Project {
-  id          String     @id @default(uuid())
-  name        String
-  description String?
-  createdAt   DateTime   @default(now()) @map("created_at")
-  documents   Document[]
-
-  @@map("projects")
-}
-
-model Document {
-  id           String      @id @default(uuid())
-  projectId    String      @map("project_id")
-  project      Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  fileName     String      @map("file_name")
-  fileType     DocType     @map("file_type")
-  filePath     String      @map("file_path")
-  fileSize     Int         @map("file_size")
-  uploadedById String      @map("uploaded_by_id")
-  uploadedBy   User        @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
-  status       DocStatus   @default(DRAFT)
-  createdAt    DateTime    @default(now()) @map("created_at")
-  updatedAt    DateTime    @updatedAt @map("updated_at")
-
-  boqHeaders       BoqHeader[]
-  penawaranHeaders PenawaranHeader[]
-  rfqHeaders       RfqHeader[]
-
-  @@map("documents")
-}
-
-model BoqHeader {
-  id          String    @id @default(uuid())
-  documentId  String    @map("document_id")
-  document    Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  totalAmount Float     @default(0) @map("total_amount")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  updatedAt   DateTime  @updatedAt @map("updated_at")
-  items       BoqItem[]
-
-  @@map("boq_headers")
-}
-
-model BoqItem {
-  id              String    @id @default(uuid())
-  boqHeaderId     String    @map("boq_header_id")
-  boqHeader       BoqHeader @relation(fields: [boqHeaderId], references: [id], onDelete: Cascade)
-  wbsCode         String?   @map("wbs_code")
-  description     String
-  quantity        Float
-  unit            String
-  rateEngineering Float     @map("rate_engineering")
-  rateProcurement Float     @map("rate_procurement")
-  totalPrice      Float     @map("total_price")
-  notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  @@map("boq_items")
-}
-
-model PenawaranHeader {
-  id          String          @id @default(uuid())
-  documentId  String          @map("document_id")
-  document    Document        @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  vendorName  String          @map("vendor_name")
-  quoteNumber String?         @map("quote_number")
-  totalOffer  Float           @map("total_offer")
-  validityDate DateTime?      @map("validity_date")
-  createdAt   DateTime        @default(now()) @map("created_at")
-  items       PenawaranItem[]
-
-  @@map("penawaran_headers")
-}
-
-model PenawaranItem {
-  id                String          @id @default(uuid())
-  penawaranHeaderId String          @map("penawaran_header_id")
-  penawaranHeader   PenawaranHeader @relation(fields: [penawaranHeaderId], references: [id], onDelete: Cascade)
-  itemNo            Int             @map("item_no")
-  description       String
-  quantity          Float
-  unit              String
-  unitPrice         Float           @map("unit_price")
-  totalPrice        Float           @map("total_price")
-  notes             String?
-
-  @@map("penawaran_items")
-}
-
-model RfqHeader {
-  id         String    @id @default(uuid())
-  documentId String    @map("document_id")
-  document   Document  @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  rfqNumber  String    @unique @map("rfq_number")
-  targetDate DateTime? @map("target_date")
-  terms      String?
-  createdAt  DateTime  @default(now()) @map("created_at")
-  items      RfqItem[]
-
-  @@map("rfq_headers")
-}
-
-model RfqItem {
-  id             String    @id @default(uuid())
-  rfqHeaderId    String    @map("rfq_header_id")
-  rfqHeader      RfqHeader @relation(fields: [rfqHeaderId], references: [id], onDelete: Cascade)
-  itemNo         Int       @map("item_no")
-  description    String
-  quantity       Float
-  unit           String
-  specifications String?
-  notes          String?
-
-  @@map("rfq_items")
-}
-
-model AuditLog {
+model WorkReport {
   id          String   @id @default(uuid())
-  userId      String?  @map("user_id")
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  actionType  String   @map("action_type")
-  tableName   String   @map("table_name")
-  recordId    String   @map("record_id")
-  description String
-  oldValues   String?  @map("old_values")
-  newValues   String?  @map("new_values")
-  ipAddress   String?  @map("ip_address")
-  timestamp   DateTime @default(now())
+  userId      String   @map("user_id")
+  date        DateTime @db.Date
+  title       String
+  description String   @db.Text
+  attachmentUrl String? @map("attachment_url")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@map("audit_logs")
+  @@map("work_reports")
+}
+
+
+model MasterCompany {
+  id   String @id @default(uuid())
+  code String @unique
+  name String
+
+  @@map("master_companies")
+}
+
+model MasterClient {
+  id   String @id @default(uuid())
+  code String @unique
+  name String
+
+  @@map("master_clients")
+}
+
+model MasterSubkon {
+  id   String @id @default(uuid())
+  code String @unique
+  name String
+
+  projectSubkons ProjectSubkon[]
+
+  @@map("master_subkons")
+}
+
+model MasterNumbering {
+  id        String   @id @default(uuid())
+  code      String   @unique
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("master_numberings")
+}
+
+model ProjectSubkon {
+  id                     String        @id @default(uuid())
+  projectId              String        @map("project_id")
+  masterSubkonId         String?       @map("master_subkon_id")
+  namaPekerjaan          String?       @map("nama_pekerjaan")
+  kategori               String?       // SPK Number / Folder Link
+  nilaiKontrak           Float?        @map("nilai_kontrak")
+  type                   String        @default("SUBKON1")
+  
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+
+  project                Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  masterSubkon           MasterSubkon? @relation(fields: [masterSubkonId], references: [id])
+  termins                ProjectSubkonTermin[]
+
+  @@map("project_subkons")
+}
+
+model ProjectSubkonTermin {
+  id                     String        @id @default(uuid())
+  projectSubkonId        String        @map("project_subkon_id")
+  
+  nilaiJasa              Float?        @map("nilai_jasa")
+  pembayaranPersen       Float?        @map("pembayaran_persen")
+  prosedurPenagihan      String?       @map("prosedur_penagihan")
+  
+  // Auto Fields (Overrideable)
+  autoRfq                String?       @map("auto_rfq")
+  autoBoq                String?       @map("auto_boq")
+  autoSpk                String?       @map("auto_spk")
+  autoFotoProgress       String?       @map("auto_foto_progress")
+  
+  // Manual Fields
+  bapp                   String?
+  laporanProgress        String?       @map("laporan_progress")
+  suratJalan             String?       @map("surat_jalan")
+  spfkpKtp               String?       @map("spfkp_ktp")
+  npwp                   String?
+  ceklist                String?
+  bastBasT2              String?       @map("bast_bas_t2")
+  proformaInvoice        String?       @map("proforma_invoice")
+  tandaTerimaTukarFaktur String?       @map("tanda_terima_tukar_faktur")
+  invoice                String?
+  kwitansi               String?
+  tanggalPengajuan       DateTime?     @map("tanggal_pengajuan")
+  tanggalDibayar         DateTime?     @map("tanggal_dibayar")
+  
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+
+  projectSubkon          ProjectSubkon @relation(fields: [projectSubkonId], references: [id], onDelete: Cascade)
+
+  @@map("project_subkon_termins")
+}
+
+model ChatMessage {
+  id            String    @id @default(uuid())
+  senderId      String    @map("sender_id")
+  receiverId    String?   @map("receiver_id")
+  targetRole    Role?     @map("target_role")
+  message       String    @db.Text
+  attachmentUrl String?   @map("attachment_url")
+  isRead        Boolean   @default(false) @map("is_read")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  sender        User      @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver      User?     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+model CompanyFormDocument {
+  id           String   @id @default(uuid())
+  company      String   // "MJI" | "DJI" | "IRI"
+  documentNo   String   @map("document_no")
+  poNo         String?  @map("po_no")
+  vendorName   String?  @map("vendor_name")
+  documentData Json     @map("document_data")
+  createdById  String   @map("created_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  createdBy    User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@map("company_form_documents")
 }

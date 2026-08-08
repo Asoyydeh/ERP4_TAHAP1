@@ -15,6 +15,7 @@ export class MonitoringController {
               name: true,
               email: true,
               role: true,
+              photoUrl: true,
             },
           },
         },
