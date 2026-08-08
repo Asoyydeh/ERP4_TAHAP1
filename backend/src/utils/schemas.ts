@@ -9,6 +9,10 @@ export const registerSchema = z.object({
 });
 
 export const loginSchema = z.object({
-  email: z.string().email('Format email tidak valid'),
-  passwordHash: z.string().min(1, 'Password wajib diisi'),
+  email: z.string().trim().email('Format email tidak valid'),
+  passwordHash: z.string().optional(),
+  password: z.string().optional(),
+}).refine(data => !!(data.passwordHash || data.password), {
+  message: 'Password wajib diisi',
+  path: ['password']
 });

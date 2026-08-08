@@ -7,9 +7,7 @@ const router = Router();
 
 router.use(authenticate);
 
-// Batasi hanya Admin Monitoring dan Superadmin yang dapat mengakses data monitoring
-router.use(authorize([Role.ADMIN_MONITORING, Role.SUPERADMIN]));
-
+// Diperbolehkan untuk semua role agar notifikasi dapat ditampilkan di dashboard semua role
 router.get('/audit-logs', MonitoringController.getAuditLogs);
 router.get('/stats', MonitoringController.getDashboardStats);
 

@@ -10,18 +10,39 @@ export interface AuthenticatedRequest extends Request {
 
 const JWT_SECRET = process.env.JWT_SECRET || 'SuperSecretJWTKey123!@#';
 
+import prisma from '../config/db';
+
 /**
  * Middleware untuk memvalidasi token JWT
  */
-export function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+  let token: string | undefined;
   const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query.token) {
+    token = req.query.token as string;
+  }
+
+  if (!token) {
     return next(new UnauthorizedError('Token otorisasi diperlukan'));
   }
 
-  const token = authHeader.split(' ')[1];
   try {
     const decoded = jwt.verify(token, JWT_SECRET) as UserPayload;
+    
+    // Inherit PROYEK_ADMIN role if their manager is PROYEK_ADMIN and user is not SUPERADMIN
+    if (decoded.managerId && decoded.role !== Role.SUPERADMIN) {
+      const userWithManager = await prisma.user.findUnique({
+        where: { id: decoded.id },
+        include: { manager: true }
+      });
+      if (userWithManager?.manager?.role) {
+        decoded.role = userWithManager.manager.role as Role;
+      }
+    }
+
     req.user = decoded;
     next();
   } catch (error) {

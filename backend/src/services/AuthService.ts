@@ -11,6 +11,7 @@ export interface UserPayload {
   name: string;
   email: string;
   role: Role;
+  managerId: string | null;
 }
 
 export class AuthService {
@@ -53,8 +54,15 @@ export class AuthService {
    * Autentikasi Login User
    */
   static async login(email: string, passwordHash: string) {
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const user = await prisma.user.findFirst({
+      where: { 
+        email: {
+          equals: cleanEmail,
+          mode: 'insensitive'
+        }
+      },
+      include: { manager: true }
     });
 
     if (!user) {
@@ -71,6 +79,7 @@ export class AuthService {
       name: user.name,
       email: user.email,
       role: user.role,
+      managerId: user.managerId,
     };
 
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
@@ -82,8 +91,53 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
+        managerId: user.managerId,
+        address: user.address,
+        photoUrl: user.photoUrl,
+        manager: user.manager ? { id: user.manager.id, role: user.manager.role } : null
       },
     };
+  }
+
+  static async getUserById(id: string) {
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        managerId: true,
+        address: true,
+        photoUrl: true,
+        createdAt: true,
+        manager: {
+          select: {
+            id: true,
+            role: true,
+          }
+        }
+      },
+    });
+    if (!user) {
+      throw new UnauthorizedError('User tidak ditemukan');
+    }
+    return user;
+  }
+
+  static async updateProfile(id: string, data: any) {
+    return prisma.user.update({
+      where: { id },
+      data,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        address: true,
+        photoUrl: true,
+      },
+    });
   }
 
   /**
@@ -96,11 +150,69 @@ export class AuthService {
         name: true,
         email: true,
         role: true,
+        address: true,
+        photoUrl: true,
         createdAt: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
+    });
+  }
+
+  static async updateUserByAdmin(id: string, data: { name?: string; email?: string; role?: Role; password?: string }) {
+    try {
+      const updateData: any = {};
+      if (data.name) updateData.name = data.name;
+      if (data.email) updateData.email = data.email;
+      if (data.role) updateData.role = data.role as any;
+      if (data.password) {
+        const salt = await bcrypt.genSalt(10);
+        updateData.passwordHash = await bcrypt.hash(data.password, salt);
+      }
+      return await prisma.user.update({
+        where: { id },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+    } catch (err: any) {
+      console.warn('Prisma update exception, executing raw SQL fallback for user role:', err?.message);
+      if (data.role) {
+        await prisma.$executeRawUnsafe(`UPDATE users SET role = $1::"Role", updated_at = NOW() WHERE id = $2`, String(data.role), id);
+      }
+      if (data.name) {
+        await prisma.$executeRawUnsafe(`UPDATE users SET name = $1, updated_at = NOW() WHERE id = $2`, data.name, id);
+      }
+      if (data.email) {
+        await prisma.$executeRawUnsafe(`UPDATE users SET email = $1, updated_at = NOW() WHERE id = $2`, data.email, id);
+      }
+      if (data.password) {
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(data.password, salt);
+        await prisma.$executeRawUnsafe(`UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2`, hash, id);
+      }
+      return prisma.user.findUnique({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          createdAt: true,
+        },
+      });
+    }
+  }
+
+  static async deleteUserByAdmin(id: string) {
+    return prisma.user.delete({
+      where: { id },
     });
   }
 }

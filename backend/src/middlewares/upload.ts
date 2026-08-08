@@ -1,45 +1,72 @@
 import multer from 'multer';
-import fs from 'fs';
 import path from 'path';
-import { AuthenticatedRequest } from './auth';
+import fs from 'fs';
+import { Request } from 'express';
 
+// Pastikan direktori uploads dasar ada
+const baseUploadDir = path.join(process.cwd(), 'storage/uploads');
+if (!fs.existsSync(baseUploadDir)) {
+  fs.mkdirSync(baseUploadDir, { recursive: true });
+}
+
+// Konfigurasi Penyimpanan Disk Multer secara Dinamis dan Aman
 const storage = multer.diskStorage({
-  destination: (req: AuthenticatedRequest, file, cb) => {
-    const userId = req.user?.id;
-    if (!userId) {
-      return cb(new Error('User tidak terautentikasi'), '');
+  destination: (req: Request, file: Express.Multer.File, cb) => {
+    try {
+      const user = (req as any).user;
+      const fileType = req.params.fileType || req.body.fileType || 'general';
+      const projectId = req.params.projectId || req.body.projectId;
+
+      let targetFolder = path.join(baseUploadDir, 'general');
+
+      if (user?.id) {
+        const cleanUserId = String(user.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+        if (fileType === 'profile') {
+          targetFolder = path.join(baseUploadDir, 'users', cleanUserId, 'profile');
+        } else if (projectId) {
+          const cleanProjId = String(projectId).replace(/[^a-zA-Z0-9_-]/g, '_');
+          targetFolder = path.join(baseUploadDir, 'users', cleanUserId, 'projects', cleanProjId, fileType);
+        } else {
+          targetFolder = path.join(baseUploadDir, 'users', cleanUserId, fileType);
+        }
+      }
+
+      if (!fs.existsSync(targetFolder)) {
+        fs.mkdirSync(targetFolder, { recursive: true });
+      }
+
+      cb(null, targetFolder);
+    } catch (error: any) {
+      console.error('Multer storage destination error:', error);
+      const fallbackDir = path.join(baseUploadDir, 'general');
+      if (!fs.existsSync(fallbackDir)) {
+        fs.mkdirSync(fallbackDir, { recursive: true });
+      }
+      cb(null, fallbackDir);
     }
-
-    // Ambil fileType dari route parameters, ubah ke lowercase
-    const fileType = (req.params.fileType || 'misc').toLowerCase();
-    
-    // Path: storage/uploads/users/{userId}/{fileType}
-    const uploadPath = path.join(
-      process.cwd(),
-      'storage/uploads/users',
-      userId,
-      fileType
-    );
-
-    // Buat direktori jika belum ada
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-
-    cb(null, uploadPath);
   },
-  filename: (req, file, cb) => {
-    // Simpan dengan nama unik menggunakan timestamp untuk mencegah bentrok nama file
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    const name = path.basename(file.originalname, ext).replace(/[^a-zA-Z0-9]/g, '_');
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
+  filename: (req: Request, file: Express.Multer.File, cb) => {
+    try {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const ext = path.extname(file.originalname || '.bin');
+      const baseName = path.basename(file.originalname || 'file', ext).replace(/[^a-zA-Z0-9_-]/g, '_');
+      cb(null, `${baseName || 'file'}-${uniqueSuffix}${ext}`);
+    } catch (err) {
+      cb(null, `upload-${Date.now()}${path.extname(file.originalname || '.bin')}`);
+    }
   },
 });
 
+// Filter jenis file yang diizinkan (menerima semua jenis berkas)
+const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  cb(null, true);
+};
+
+// Inisialisasi Middleware Multer dengan batas ukuran 100MB
 export const upload = multer({
   storage: storage,
+  fileFilter: fileFilter,
   limits: {
-    fileSize: 15 * 1024 * 1024, // Maksimal 15MB
+    fileSize: 100 * 1024 * 1024, // 100 MB
   },
 });

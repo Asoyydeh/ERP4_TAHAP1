@@ -12,18 +12,39 @@ router.use(authenticate);
 router.get('/', DocumentController.getAll);
 router.get(
   '/download-all',
-  authorize([Role.PROYEK_ADMIN, Role.SUPERADMIN]),
+  authorize([
+    Role.SUPERADMIN,
+    Role.ADMIN_MONITORING,
+    Role.ENGINEERING,
+    Role.PROYEK_ADMIN,
+    Role.PROCUREMENT,
+    Role.FINANCE,
+    Role.HRD,
+    Role.GA,
+    Role.STAFF_GA,
+  ]),
   DocumentController.downloadAll
 );
 router.get('/download/:id', DocumentController.download);
+router.get('/view/:id', DocumentController.view);
 
 // Hapus berkas (Proteksi owner/Superadmin divalidasi di controller)
 router.delete('/:id', DocumentController.delete);
 
-// Upload berkas proyek (ENGINEERING, PROYEK_ADMIN, dan SUPERADMIN)
+// Upload berkas proyek untuk semua peran terotorisasi
 router.post(
   '/upload/:fileType',
-  authorize([Role.ENGINEERING, Role.PROYEK_ADMIN, Role.SUPERADMIN]),
+  authorize([
+    Role.SUPERADMIN,
+    Role.ADMIN_MONITORING,
+    Role.ENGINEERING,
+    Role.PROYEK_ADMIN,
+    Role.PROCUREMENT,
+    Role.FINANCE,
+    Role.HRD,
+    Role.GA,
+    Role.STAFF_GA,
+  ]),
   upload.single('file'),
   DocumentController.upload
 );
@@ -40,7 +61,7 @@ router.put(
   DocumentController.updateBoqItemRate
 );
 
-// Ubah status dokumen (Hanya Procurement, Finance, dan Superadmin)
+// Ubah status dokumen
 router.put(
   '/:id/status',
   authorize([Role.PROCUREMENT, Role.FINANCE, Role.SUPERADMIN]),
