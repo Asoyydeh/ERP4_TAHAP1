@@ -579,7 +579,10 @@ export default function PoSignaturesPage() {
       const items = dData.items || [];
       const itemSubtotal = items.reduce((acc: number, it: any) => acc + Number(it.amount || 0), 0);
       const subtotal = dData.subtotal ? Number(dData.subtotal) : itemSubtotal;
-      const ppn = dData.ppn ? Number(dData.ppn) : Math.round(subtotal * 0.11);
+      const isPpn = dData.isPPN !== false && dData.isPpn !== false && dData.isPPN !== 'false';
+      const ppn = dData.ppn !== undefined && dData.ppn !== null && dData.ppn !== ''
+        ? Number(dData.ppn)
+        : (isPpn ? Math.round(subtotal * 0.11) : 0);
       const grandTotal = dData.grandTotal ? Number(dData.grandTotal) : subtotal + ppn;
 
       if (!map.has(kode)) {
