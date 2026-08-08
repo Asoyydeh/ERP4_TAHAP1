@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 140" width="320" height="140">
+  <!-- Grey Triangle (Lower/Left) -->
+  <polygon points="90,15 35,115 190,125" fill="none" stroke="#666666" stroke-width="7" stroke-linejoin="round" />
+  
+  <!-- Orange Triangle (Upper/Right, overlapping) -->
+  <polygon points="125,25 35,95 170,30" fill="none" stroke="#E65100" stroke-width="7" stroke-linejoin="round" />
+
+  <!-- Text: PT. Delta Jaya Indotama -->
+  <text x="80" y="98" font-family="Arial, Helvetica, sans-serif" font-weight="bold" font-size="16" fill="#333333">
+    PT. Delta Jaya Indotama
+  </text>
+</svg>
