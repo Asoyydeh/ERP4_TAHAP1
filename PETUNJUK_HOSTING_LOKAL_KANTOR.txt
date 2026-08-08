@@ -1,0 +1,35 @@
+=====================================================================
+📌 PETUNJUK CARA HOSTING LOKAL KANTOR (SHARED VIA WI-FI / LAN)
+🏢 ERP ASSET MANAGEMENT - PT. MODERN JAYA KONSTRUKSI
+=====================================================================
+
+Alamat IP laptop server kantor Anda saat ini (pada Wi-Fi):
+👉 http://192.168.68.128:3000
+
+---------------------------------------------------------------------
+STEP 1: BUKA IZIN FIREWALL (Cukup Dilakukan 1x Saja)
+---------------------------------------------------------------------
+1. Klik kanan file [BUKA_AKSES_FIREWALL_LAN.bat] -> "Run as Administrator".
+2. Klik "Yes" pada jendela konfirmasi Windows.
+
+---------------------------------------------------------------------
+STEP 2: JALANKAN APLIKASI
+---------------------------------------------------------------------
+1. Klik 2x file [JALANKAN_APLIKASI_KANTOR.bat]
+2. Di jendela terminal akan otomatis muncul IP Address aktif laptop Anda:
+   👉 http://192.168.68.128:3000
+
+---------------------------------------------------------------------
+STEP 3: CARA REKAN KANTOR MENGAKSES APLIKASI
+---------------------------------------------------------------------
+1. Minta rekan kantor membuka browser di Laptop / HP mereka.
+2. Ketikkan alamat IP aktif laptop Anda:
+   👉 http://192.168.68.128:3000
+
+---------------------------------------------------------------------
+💡 CATATAN PENTING ALAMAT IP:
+---------------------------------------------------------------------
+- Alamat IP `192.168.1.140` adalah IP lama sebelum laptop Anda berpindah subnet Wi-Fi.
+- Alamat IP aktif Wi-Fi laptop Anda saat ini adalah: 192.168.68.128.
+- Saat menjalankan `JALANKAN_APLIKASI_KANTOR.bat`, IP aktif terbaru selalu tampil di jendela terminal.
+=====================================================================
