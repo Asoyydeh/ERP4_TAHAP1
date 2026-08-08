@@ -1,0 +1,1331 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dokumentasi Sistem Resmi - PT. Modern Jaya Konstruksi</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+    @page {
+      size: A4;
+      margin: 10mm 10mm 12mm 10mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #0f172a;
+      background-color: #f8fafc;
+      line-height: 1.55;
+      font-size: 8.5pt;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 5px;
+    }
+
+    /* Cover Page - Soft Premium Executive Aesthetic */
+    .cover-page {
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border: 2px solid #cbd5e1;
+      padding: 40px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 45%, #faf5ff 100%);
+      box-shadow: 0 10px 30px rgba(2, 132, 199, 0.06);
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cover-page::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #818cf8 100%);
+    }
+
+    .cover-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 2px solid rgba(203, 213, 225, 0.6);
+      padding-bottom: 18px;
+    }
+
+    .logo-img {
+      height: 52px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.05));
+    }
+
+    .brand-logo {
+      font-size: 21pt;
+      font-weight: 800;
+      color: #0f172a;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-sub {
+      font-size: 9pt;
+      font-weight: 700;
+      color: #0284c7;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .cover-title-box {
+      margin: 45px 0;
+    }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 6px 16px;
+      background-color: #ffffff;
+      color: #0284c7;
+      border: 1px solid #bae6fd;
+      font-weight: 800;
+      font-size: 8.5pt;
+      border-radius: 20px;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+    }
+
+    .cover-title {
+      font-size: 24pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.25;
+      margin-bottom: 15px;
+      letter-spacing: -0.3px;
+    }
+
+    .cover-subtitle {
+      font-size: 10.5pt;
+      color: #334155;
+      font-weight: 500;
+      line-height: 1.55;
+    }
+
+    .cover-footer {
+      border-top: 2px solid rgba(203, 213, 225, 0.6);
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      background: rgba(255, 255, 255, 0.6);
+      padding: 15px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+    }
+
+    .meta-item label {
+      font-size: 7.5pt;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .meta-item span {
+      font-size: 9.5pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* Section Headings */
+    .section {
+      margin-bottom: 22px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 2px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+    }
+
+    .section-num {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      width: 26px;
+      height: 26px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 9.5pt;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+    }
+
+    .section-title {
+      font-size: 12.5pt;
+      font-weight: 800;
+      color: #0f172a;
+    }
+
+    /* Sub-bab Headings - BLACK TEXT with Soft Left Accent Bar */
+    h3 {
+      font-size: 10.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 16px 0 8px 0;
+      border-left: 4px solid #0284c7;
+      padding-left: 10px;
+      background: linear-gradient(90deg, #f0f9ff 0%, transparent 100%);
+      padding-top: 4px;
+      padding-bottom: 4px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    p {
+      margin-bottom: 8px;
+      color: #334155;
+      text-align: justify;
+    }
+
+    /* Tables - Soft Tinted Style */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+      font-size: 7.5pt;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+      text-align: left;
+      padding: 7px 9px;
+      border: 1px solid #0f172a;
+    }
+
+    td {
+      padding: 6px 9px;
+      border: 1px solid #cbd5e1;
+      vertical-align: middle;
+      color: #0f172a;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    /* Role Badges */
+    .role-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-size: 6.5pt;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .role-super { background-color: #fee2e2; color: #991b1b; }
+    .role-admin { background-color: #e0f2fe; color: #075985; }
+    .role-monitoring { background-color: #fef3c7; color: #92400e; }
+    .role-eng { background-color: #dcfce7; color: #166534; }
+    .role-fin { background-color: #f3e8ff; color: #6b21a8; }
+    .role-proc { background-color: #ffedd5; color: #9a3412; }
+    .role-hrd { background-color: #fce7f3; color: #9d174d; }
+
+    /* Code Badges */
+    .code-badge {
+      display: inline-block;
+      background-color: #e2e8f0;
+      color: #0f172a;
+      font-weight: 800;
+      font-size: 7pt;
+      padding: 2px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+
+    /* Grid & Cards */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 8px 0;
+    }
+
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+
+    .card-title {
+      font-weight: 800;
+      font-size: 8.5pt;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .card-desc {
+      font-size: 7.5pt;
+      color: #475569;
+    }
+
+    /* Soft Diagram Box */
+    .diagram-box {
+      width: 100%;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+      margin: 12px 0;
+      text-align: center;
+      page-break-inside: avoid;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    }
+
+    .diagram-box svg {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    /* Screenshots & Images - Soft Card Container */
+    .img-container {
+      margin: 12px 0 16px 0;
+      text-align: left;
+      page-break-inside: avoid;
+      background-color: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .img-frame {
+      width: 100%;
+      max-height: 250px;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      background-color: #f8fafc;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    /* Image Captions & Subcaptions - BLACK TEXT */
+    .img-caption {
+      font-size: 8.5pt;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+      border-left: 3px solid #0284c7;
+      padding-left: 8px;
+    }
+
+    .img-desc-text {
+      font-size: 8pt;
+      color: #334155;
+      line-height: 1.55;
+      text-align: justify;
+      margin-top: 6px;
+      background: #f8fafc;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid #f1f5f9;
+    }
+
+    .page-break {
+      page-break-after: always;
+    }
+
+    ul {
+      margin-left: 14px;
+      margin-bottom: 4px;
+    }
+
+    li {
+      margin-bottom: 2px;
+      color: #334155;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ==================== COVER PAGE ==================== -->
+  <div class="cover-page">
+    <div class="cover-header">
+      <div>
+        <div class="brand-logo">PT. MODERN JAYA KONTRUKSI</div>
+        <div class="brand-sub">Sistem ERP Asset Management & Konstruksi Enterprise</div>
+      </div>
+      <img src="frontend/public/mjk_logo.png" class="logo-img" alt="Logo MJK" />
+    </div>
+
+    <div class="cover-title-box">
+      <span class="badge-tag">Dokumentasi Terperinci & Analisis Visual Lengkap</span>
+      <h1 class="cover-title">DOKUMENTASI ARSITEKTUR, METODOLOGI WATERFALL, USE CASE, FLOWMAP & ANALISIS VISUAL ANTARMUKA</h1>
+      <p class="cover-subtitle">Panduan Resmi Spesifikasi Sistem, SDLC Waterfall Model Bercabang, Detailed Branched Use Case Diagram per User Role, Diagram Visual Flowmap Bercabang, Berkas Kode A1-C6, Matriks Hak Akses 7 Peran Pengguna, serta Penjelasan Komprehensif Tangkapan Layar (17 Screenshots Per Role)</p>
+    </div>
+
+    <div class="cover-footer">
+      <div class="meta-item">
+        <label>Disusun Oleh</label>
+        <span>Risky Hariadi</span>
+      </div>
+      <div class="meta-item">
+        <label>Versi Dokumen</label>
+        <span>v1.0 (Enterprise Final)</span>
+      </div>
+      <div class="meta-item">
+        <label>Tanggal Rilis</label>
+        <span>22 Juli 2026</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== SECTION 1: PENDAHULUAN & LOGO PERUSAHAAN ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2 class="section-title">Pendahuluan & Profil Sistem Enterprise</h2>
+    </div>
+    
+    <div class="card" style="margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #0284c7; background: linear-gradient(90deg, #f0f9ff 0%, #ffffff 100%);">
+      <div>
+        <h3 style="margin: 0; color: #0f172a; font-size: 10.5pt; border: none; padding: 0; background: none;">PT. MODERN JAYA KONTRUKSI</h3>
+        <p style="margin: 2px 0 0 0; font-size: 8pt; color: #475569;">Enterprise Asset Management & Digital Construction ERP Software</p>
+      </div>
+      <img src="frontend/public/mjk_logo.png" style="height: 36px;" alt="Logo Perusahaan" />
+    </div>
+
+    <p>Aplikasi <strong>ERP Asset Management PT. Modern Jaya Konstruksi</strong> dikembangkan secara khusus dari awal (dari nol) untuk mengintegrasikan seluruh operasional proyek konstruksi, manajemen berkas tiga tingkat, pelacakan finansial, penawaran harga vendor, absensi geolokasi staf, hingga fitur komunikasi instan antar user role.</p>
+    
+    <p>Melalui implementasi sistem ini, setiap unit kerja (Superadmin, Proyek Admin, Admin Monitoring, Engineering, Finance, Procurement, dan HRD) memiliki pintu akses terpusat untuk memantau siklus hidup proyek secara transparan, otomatis, dan akurat tanpa jeda.</p>
+
+    <h3>Arsitektur Teknologi (Tech Stack)</h3>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-title">Frontend Framework & Client Tier</div>
+        <div class="card-desc">
+          <ul>
+            <li><strong>Next.js 14 (App Router)</strong> & React 18</li>
+            <li><strong>Tailwind CSS</strong> (Custom Design Token System)</li>
+            <li><strong>Lucide React Icons</strong> & Responsive Layout</li>
+            <li><strong>Axios Interceptors & BroadcastChannel API</strong></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Backend API & Data Tier</div>
+        <div class="card-desc">
+          <ul>
+            <li><strong>Node.js + Express.js</strong> (REST API Engine)</li>
+            <li><strong>Prisma ORM</strong> + Relational SQLite Database</li>
+            <li><strong>JWT Authentication</strong> & RBAC Authorization</li>
+            <li><strong>XLSX & Multer Engine</strong> (Automatic Document Parser)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 2: METODOLOGI SDLC WATERFALL BERCABANG ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2 class="section-title">Metodologi Pengembangan Software (SDLC Waterfall Model Bercabang)</h2>
+    </div>
+    <p>Pengembangan aplikasi dilaksanakan secara terstruktur menggunakan metodologi <strong>Waterfall SDLC Bercabang (Detailed Branched Waterfall Model)</strong> yang memetakan sub-aktivitas dan hasil keluaran (deliverables) pada setiap fasenya:</p>
+
+    <!-- Visual Branched Waterfall SVG Diagram -->
+    <div class="diagram-box">
+      <svg width="100%" height="420" viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+        <!-- Background Grid Container -->
+        <rect x="10" y="10" width="740" height="400" rx="10" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5" />
+
+        <!-- Phase 1: Requirements Analysis -->
+        <g>
+          <rect x="25" y="25" width="200" height="45" rx="6" fill="#0284c7" />
+          <text x="125" y="45" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">1. Analisis Kebutuhan</text>
+          <text x="125" y="60" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#e0f2fe" text-anchor="middle">(Requirements Analysis)</text>
+
+          <!-- Branches 1 -->
+          <path d="M 225 47 L 260 47" stroke="#0284c7" stroke-width="1.5" />
+          <path d="M 260 32 L 260 62 L 285 62" stroke="#0284c7" stroke-width="1.2" fill="none" />
+          <path d="M 260 32 L 285 32" stroke="#0284c7" stroke-width="1.2" />
+
+          <rect x="285" y="22" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="35" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• Analisis 7 User Role & Hak Akses</text>
+
+          <rect x="285" y="52" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="65" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• Klasifikasi Berkas 3-Tingkat (A1-C6)</text>
+        </g>
+
+        <!-- Connector Line Phase 1 -> Phase 2 -->
+        <path d="M 125 70 L 125 90" stroke="#0f172a" stroke-width="2" stroke-dasharray="3 3" />
+
+        <!-- Phase 2: System Architecture Design -->
+        <g>
+          <rect x="25" y="90" width="200" height="45" rx="6" fill="#0f172a" />
+          <text x="125" y="110" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">2. Desain Arsitektur</text>
+          <text x="125" y="125" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#94a3b8" text-anchor="middle">(System Architecture Design)</text>
+
+          <!-- Branches 2 -->
+          <path d="M 225 112 L 260 112" stroke="#0f172a" stroke-width="1.5" />
+          <path d="M 260 97 L 260 127 L 285 127" stroke="#0f172a" stroke-width="1.2" fill="none" />
+          <path d="M 260 97 L 285 97" stroke="#0f172a" stroke-width="1.2" />
+
+          <rect x="285" y="87" width="200" height="20" rx="4" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+          <text x="385" y="100" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0f172a" text-anchor="middle">• Design Token Tailwind & Layout Next.js 14</text>
+
+          <rect x="285" y="117" width="200" height="20" rx="4" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+          <text x="385" y="130" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0f172a" text-anchor="middle">• Skema Prisma ORM & SQLite Database</text>
+        </g>
+
+        <!-- Connector Line Phase 2 -> Phase 3 -->
+        <path d="M 125 135 L 125 155" stroke="#0284c7" stroke-width="2" stroke-dasharray="3 3" />
+
+        <!-- Phase 3: Coding & Implementation -->
+        <g>
+          <rect x="25" y="155" width="200" height="45" rx="6" fill="#0284c7" />
+          <text x="125" y="175" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">3. Implementasi Kode</text>
+          <text x="125" y="190" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#e0f2fe" text-anchor="middle">(Coding & Module Development)</text>
+
+          <!-- Branches 3 -->
+          <path d="M 225 177 L 260 177" stroke="#0284c7" stroke-width="1.5" />
+          <path d="M 260 162 L 260 192 L 285 192" stroke="#0284c7" stroke-width="1.2" fill="none" />
+          <path d="M 260 162 L 285 162" stroke="#0284c7" stroke-width="1.2" />
+
+          <rect x="285" y="152" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="165" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• REST API, JWT Auth & Excel Parser Engine</text>
+
+          <rect x="285" y="182" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="195" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• BroadcastChannel Real-Time Engine (&lt;100ms)</text>
+        </g>
+
+        <!-- Connector Line Phase 3 -> Phase 4 -->
+        <path d="M 125 200 L 125 220" stroke="#0f172a" stroke-width="2" stroke-dasharray="3 3" />
+
+        <!-- Phase 4: System Testing & Audit -->
+        <g>
+          <rect x="25" y="220" width="200" height="45" rx="6" fill="#0f172a" />
+          <text x="125" y="240" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">4. Pengujian Systems</text>
+          <text x="125" y="255" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#94a3b8" text-anchor="middle">(Testing, QA & Bug Resolution)</text>
+
+          <!-- Branches 4 -->
+          <path d="M 225 242 L 260 242" stroke="#0f172a" stroke-width="1.5" />
+          <path d="M 260 227 L 260 257 L 285 257" stroke="#0f172a" stroke-width="1.2" fill="none" />
+          <path d="M 260 227 L 285 227" stroke="#0f172a" stroke-width="1.2" />
+
+          <rect x="285" y="217" width="200" height="20" rx="4" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+          <text x="385" y="230" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0f172a" text-anchor="middle">• TypeScript Strict Check (0 Error Lulus)</text>
+
+          <rect x="285" y="247" width="200" height="20" rx="4" fill="#f1f5f9" stroke="#0f172a" stroke-width="1" />
+          <text x="385" y="260" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0f172a" text-anchor="middle">• Safe Null Subkon & Rate Limit 1.000.000 Audit</text>
+        </g>
+
+        <!-- Connector Line Phase 4 -> Phase 5 -->
+        <path d="M 125 265 L 125 285" stroke="#0284c7" stroke-width="2" stroke-dasharray="3 3" />
+
+        <!-- Phase 5: Release & Deployment -->
+        <g>
+          <rect x="25" y="285" width="200" height="45" rx="6" fill="#0284c7" />
+          <text x="125" y="305" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">5. Rilis & Deployment</text>
+          <text x="125" y="320" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#e0f2fe" text-anchor="middle">(Production Build & Release)</text>
+
+          <!-- Branches 5 -->
+          <path d="M 225 307 L 260 307" stroke="#0284c7" stroke-width="1.5" />
+          <path d="M 260 292 L 260 322 L 285 322" stroke="#0284c7" stroke-width="1.2" fill="none" />
+          <path d="M 260 292 L 285 292" stroke="#0284c7" stroke-width="1.2" />
+
+          <rect x="285" y="282" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="295" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• Rilis Production App Build v1.0 Enterprise</text>
+
+          <rect x="285" y="312" width="200" height="20" rx="4" fill="#e0f2fe" stroke="#0284c7" stroke-width="1" />
+          <text x="385" y="325" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#0369a1" text-anchor="middle">• Generasi PDF Dokumentasi & Screenshot Role</text>
+        </g>
+
+        <!-- Connector Line Phase 5 -> Phase 6 -->
+        <path d="M 125 330 L 125 350" stroke="#166534" stroke-width="2" stroke-dasharray="3 3" />
+
+        <!-- Phase 6: Maintenance & Support -->
+        <g>
+          <rect x="25" y="350" width="200" height="45" rx="6" fill="#166534" />
+          <text x="125" y="370" font-family="'Plus Jakarta Sans', sans-serif" font-size="9.5" font-weight="bold" fill="#ffffff" text-anchor="middle">6. Pemeliharaan</text>
+          <text x="125" y="385" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" fill="#dcfce7" text-anchor="middle">(Maintenance & Support)</text>
+
+          <!-- Branches 6 -->
+          <path d="M 225 372 L 260 372" stroke="#166534" stroke-width="1.5" />
+          <path d="M 260 357 L 260 387 L 285 387" stroke="#166534" stroke-width="1.2" fill="none" />
+          <path d="M 260 357 L 285 357" stroke="#166534" stroke-width="1.2" />
+
+          <rect x="285" y="347" width="200" height="20" rx="4" fill="#dcfce7" stroke="#166534" stroke-width="1" />
+          <text x="385" y="360" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#166534" text-anchor="middle">• Monitoring Performa Real-Time & Audit Log</text>
+
+          <rect x="285" y="377" width="200" height="20" rx="4" fill="#dcfce7" stroke="#166534" stroke-width="1" />
+          <text x="385" y="390" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" font-weight="bold" fill="#166534" text-anchor="middle">• Tuning Polling Fallback & Security Update</text>
+        </g>
+      </svg>
+      <div style="font-size: 7.5pt; font-weight: 700; color: #0f172a; margin-top: 3px;">Gambar 2.1: Diagram Alur Metodologi SDLC Waterfall Model Bercabang (Detailed Branched SDLC Model)</div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 3: USE CASE DIAGRAM BERCABANG ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2 class="section-title">Use Case Diagram Bercabang Per Role (Detailed Branched Use Case)</h2>
+    </div>
+    <p>Diagram Use Case di bawah ini secara spesifik memetakan cabang-cabang fungsionalitas (Use Cases) yang dapat diakses oleh masing-masing dari 7 Aktor (User Roles):</p>
+
+    <!-- Visual Branched Use Case SVG Diagram -->
+    <div class="diagram-box">
+      <svg width="100%" height="470" viewBox="0 0 760 470" xmlns="http://www.w3.org/2000/svg">
+        <!-- System Boundary Box -->
+        <rect x="220" y="10" width="320" height="450" rx="10" fill="#ffffff" stroke="#0f172a" stroke-width="2" stroke-dasharray="4 4" />
+        <text x="380" y="28" font-family="'Plus Jakarta Sans', sans-serif" font-size="10.5" font-weight="800" fill="#0f172a" text-anchor="middle">Batas Sistem ERP (Use Cases Bercabang)</text>
+
+        <!-- Use Cases Column Left (UC-01 to UC-11) -->
+        <g text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#0f172a">
+          <!-- Superadmin Branches -->
+          <ellipse cx="300" cy="55" rx="68" ry="14" fill="#fee2e2" stroke="#991b1b" stroke-width="1.2" />
+          <text x="300" y="58">UC-01: Tambah Proyek Baru</text>
+
+          <ellipse cx="300" cy="95" rx="68" ry="14" fill="#fee2e2" stroke="#991b1b" stroke-width="1.2" />
+          <text x="300" y="98">UC-02: Master Data Perusahaan</text>
+
+          <ellipse cx="300" cy="135" rx="68" ry="14" fill="#fee2e2" stroke="#991b1b" stroke-width="1.2" />
+          <text x="300" y="138">UC-03: Kelola Staf & Role</text>
+
+          <!-- Proyek Admin Branches -->
+          <ellipse cx="300" cy="180" rx="68" ry="14" fill="#e0f2fe" stroke="#075985" stroke-width="1.2" />
+          <text x="300" y="183">UC-04: Manual Tracking Proyek</text>
+
+          <ellipse cx="300" cy="220" rx="68" ry="14" fill="#e0f2fe" stroke="#075985" stroke-width="1.2" />
+          <text x="300" y="223">UC-05: Tracking Subkon 1 & 2</text>
+
+          <ellipse cx="300" cy="260" rx="68" ry="14" fill="#e0f2fe" stroke="#075985" stroke-width="1.2" />
+          <text x="300" y="263">UC-06: Upload Dokumen A1-C3</text>
+
+          <!-- Admin Monitoring Branches -->
+          <ellipse cx="300" cy="305" rx="68" ry="14" fill="#fef3c7" stroke="#92400e" stroke-width="1.2" />
+          <text x="300" y="308">UC-07: Full View Berkas A1-C6</text>
+
+          <ellipse cx="300" cy="345" rx="68" ry="14" fill="#fef3c7" stroke="#92400e" stroke-width="1.2" />
+          <text x="300" y="348">UC-08: Export Package ZIP</text>
+
+          <!-- HRD Branches -->
+          <ellipse cx="300" cy="390" rx="68" ry="14" fill="#fce7f3" stroke="#9d174d" stroke-width="1.2" />
+          <text x="300" y="393">UC-09: Absensi Selfie & GPS</text>
+
+          <ellipse cx="300" cy="430" rx="68" ry="14" fill="#fce7f3" stroke="#9d174d" stroke-width="1.2" />
+          <text x="300" y="433">UC-10: Input Laporan Kerja</text>
+        </g>
+
+        <!-- Use Cases Column Right (UC-11 to UC-17) -->
+        <g text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#0f172a">
+          <!-- Engineering Branches -->
+          <ellipse cx="460" cy="75" rx="68" ry="14" fill="#dcfce7" stroke="#166534" stroke-width="1.2" />
+          <text x="460" y="78">UC-11: Input Tracking RFQ</text>
+
+          <ellipse cx="460" cy="115" rx="68" ry="14" fill="#dcfce7" stroke="#166534" stroke-width="1.2" />
+          <text x="460" y="118">UC-12: Upload Drawing & BOQ</text>
+
+          <ellipse cx="460" cy="155" rx="68" ry="14" fill="#dcfce7" stroke="#166534" stroke-width="1.2" />
+          <text x="460" y="158">UC-13: Pesan Chat & File Direct</text>
+
+          <!-- Finance Branches -->
+          <ellipse cx="460" cy="205" rx="68" ry="14" fill="#f3e8ff" stroke="#6b21a8" stroke-width="1.2" />
+          <text x="460" y="208">UC-14: Penagihan & Retensi</text>
+
+          <ellipse cx="460" cy="245" rx="68" ry="14" fill="#f3e8ff" stroke="#6b21a8" stroke-width="1.2" />
+          <text x="460" y="248">UC-15: Validasi Rilis PO</text>
+
+          <!-- Procurement Branches -->
+          <ellipse cx="460" cy="295" rx="68" ry="14" fill="#ffedd5" stroke="#9a3412" stroke-width="1.2" />
+          <text x="460" y="298">UC-16: Edit Harga Satuan BOQ</text>
+
+          <ellipse cx="460" cy="335" rx="68" ry="14" fill="#ffedd5" stroke="#9a3412" stroke-width="1.2" />
+          <text x="460" y="338">UC-17: Evaluasi Subkon Vendor</text>
+        </g>
+
+        <!-- Left Actors Node & Tree Branches -->
+        <g font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" text-anchor="middle">
+          <!-- Superadmin -->
+          <circle cx="70" cy="95" r="12" fill="#991b1b" />
+          <text x="70" y="120" fill="#991b1b">SUPERADMIN</text>
+
+          <!-- Proyek Admin -->
+          <circle cx="70" cy="220" r="12" fill="#075985" />
+          <text x="70" y="245" fill="#075985">PROYEK ADMIN</text>
+
+          <!-- Admin Monitoring -->
+          <circle cx="70" cy="325" r="12" fill="#92400e" />
+          <text x="70" y="350" fill="#92400e">MONITORING</text>
+
+          <!-- HRD -->
+          <circle cx="70" cy="410" r="12" fill="#9d174d" />
+          <text x="70" y="435" fill="#9d174d">HRD / STAF</text>
+        </g>
+
+        <!-- Right Actors Node & Tree Branches -->
+        <g font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" text-anchor="middle">
+          <!-- Engineering -->
+          <circle cx="690" cy="115" r="12" fill="#166534" />
+          <text x="690" y="140" fill="#166534">ENGINEERING</text>
+
+          <!-- Finance -->
+          <circle cx="690" cy="225" r="12" fill="#6b21a8" />
+          <text x="690" y="250" fill="#6b21a8">FINANCE</text>
+
+          <!-- Procurement -->
+          <circle cx="690" cy="315" r="12" fill="#9a3412" />
+          <text x="690" y="340" fill="#9a3412">PROCUREMENT</text>
+        </g>
+
+        <!-- Branch Lines Left Actors to Use Cases -->
+        <path d="M 82 95 L 232 55" stroke="#991b1b" stroke-width="1.2" stroke-dasharray="2 2" />
+        <path d="M 82 95 L 232 95" stroke="#991b1b" stroke-width="1.2" />
+        <path d="M 82 95 L 232 135" stroke="#991b1b" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <path d="M 82 220 L 232 180" stroke="#075985" stroke-width="1.2" stroke-dasharray="2 2" />
+        <path d="M 82 220 L 232 220" stroke="#075985" stroke-width="1.2" />
+        <path d="M 82 220 L 232 260" stroke="#075985" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <path d="M 82 325 L 232 305" stroke="#92400e" stroke-width="1.2" />
+        <path d="M 82 325 L 232 345" stroke="#92400e" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <path d="M 82 410 L 232 390" stroke="#9d174d" stroke-width="1.2" />
+        <path d="M 82 410 L 232 430" stroke="#9d174d" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <!-- Branch Lines Right Actors to Use Cases -->
+        <path d="M 678 115 L 528 75" stroke="#166534" stroke-width="1.2" stroke-dasharray="2 2" />
+        <path d="M 678 115 L 528 115" stroke="#166534" stroke-width="1.2" />
+        <path d="M 678 115 L 528 155" stroke="#166534" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <path d="M 678 225 L 528 205" stroke="#6b21a8" stroke-width="1.2" />
+        <path d="M 678 225 L 528 245" stroke="#6b21a8" stroke-width="1.2" stroke-dasharray="2 2" />
+
+        <path d="M 678 315 L 528 295" stroke="#9a3412" stroke-width="1.2" />
+        <path d="M 678 315 L 528 335" stroke="#9a3412" stroke-width="1.2" stroke-dasharray="2 2" />
+      </svg>
+      <div style="font-size: 7.5pt; font-weight: 700; color: #0f172a; margin-top: 3px;">Gambar 3.1: Diagram Interaksi Use Case Bercabang Per Role (Detailed Branched Use Case)</div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 4: VISUAL BERCABANG FLOWMAP DIAGRAM ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2 class="section-title">Diagram Visual Alur Kerja Sistem Bercabang (Branched Flowmap)</h2>
+    </div>
+    <p>Diagram Flowmap bercabang di bawah ini menggambarkan alur eksekusi bercabang berdasarkan peran pengguna hingga proses sinkronisasi real-time instan:</p>
+
+    <!-- Visual Branched Flowmap SVG Diagram -->
+    <div class="diagram-box">
+      <svg width="100%" height="320" viewBox="0 0 760 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Start Node -->
+        <rect x="15" y="140" width="70" height="36" rx="18" fill="#0f172a" />
+        <text x="50" y="162" font-family="'Plus Jakarta Sans', sans-serif" font-size="8.5" font-weight="bold" fill="#ffffff" text-anchor="middle">MULAI</text>
+
+        <path d="M 85 158 L 110 158" stroke="#0f172a" stroke-width="1.8" />
+
+        <!-- Login Node -->
+        <rect x="110" y="140" width="90" height="36" rx="6" fill="#0f172a" />
+        <text x="155" y="162" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">Login JWT Auth</text>
+
+        <path d="M 200 158 L 225 158" stroke="#0f172a" stroke-width="1.8" />
+
+        <!-- Role Decision -->
+        <polygon points="260,130 295,158 260,186 225,158" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" />
+        <text x="260" y="161" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#92400e" text-anchor="middle">Cek Role</text>
+
+        <!-- Branches from Cek Role -->
+        <path d="M 260 130 L 260 45 L 310 45" stroke="#991b1b" stroke-width="1.5" fill="none" />
+        <rect x="310" y="28" width="165" height="34" rx="5" fill="#fee2e2" stroke="#991b1b" stroke-width="1.2" />
+        <text x="392" y="44" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#991b1b" text-anchor="middle">Superadmin: Proyek Baru & Staf</text>
+
+        <path d="M 295 158 L 310 115" stroke="#075985" stroke-width="1.5" fill="none" />
+        <rect x="310" y="98" width="165" height="34" rx="5" fill="#e0f2fe" stroke="#075985" stroke-width="1.2" />
+        <text x="392" y="114" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#075985" text-anchor="middle">Proyek Admin: Manual & Subkon</text>
+
+        <path d="M 295 158 L 310 200" stroke="#166534" stroke-width="1.5" fill="none" />
+        <rect x="310" y="183" width="165" height="34" rx="5" fill="#dcfce7" stroke="#166534" stroke-width="1.2" />
+        <text x="392" y="199" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#166534" text-anchor="middle">Eng & Proc: RFQ, BOQ, Drawing</text>
+
+        <path d="M 260 186 L 260 270 L 310 270" stroke="#6b21a8" stroke-width="1.5" fill="none" />
+        <rect x="310" y="253" width="165" height="34" rx="5" fill="#f3e8ff" stroke="#6b21a8" stroke-width="1.2" />
+        <text x="392" y="269" font-family="'Plus Jakarta Sans', sans-serif" font-size="7.5" font-weight="bold" fill="#6b21a8" text-anchor="middle">Finance & HRD: PO, Absen, Audit</text>
+
+        <!-- Convergence Lines -->
+        <path d="M 475 45 L 520 45 L 520 158" stroke="#0f172a" stroke-width="1.5" fill="none" />
+        <path d="M 475 115 L 520 115 L 520 158" stroke="#0f172a" stroke-width="1.5" fill="none" />
+        <path d="M 475 200 L 520 200 L 520 158" stroke="#0f172a" stroke-width="1.5" fill="none" />
+        <path d="M 475 270 L 520 270 L 520 158" stroke="#0f172a" stroke-width="1.5" fill="none" />
+
+        <path d="M 520 158 L 545 158" stroke="#0f172a" stroke-width="1.8" />
+
+        <!-- Axios & BroadcastChannel Node -->
+        <rect x="545" y="136" width="130" height="44" rx="6" fill="#166534" />
+        <text x="610" y="155" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">Axios Interceptor</text>
+        <text x="610" y="169" font-family="'Plus Jakarta Sans', sans-serif" font-size="7" fill="#dcfce7" text-anchor="middle">BroadcastChannel (&lt;100ms)</text>
+
+        <path d="M 675 158 L 695 158" stroke="#0f172a" stroke-width="1.8" />
+
+        <!-- End Node -->
+        <rect x="695" y="140" width="55" height="36" rx="18" fill="#0f172a" />
+        <text x="722" y="162" font-family="'Plus Jakarta Sans', sans-serif" font-size="8" font-weight="bold" fill="#ffffff" text-anchor="middle">SELESAI</text>
+      </svg>
+      <div style="font-size: 7.5pt; font-weight: 700; color: #0f172a; margin-top: 3px;">Gambar 4.1: Diagram Alur Kerja Visual Bercabang (Branched Flowmap) Pemrosesan Data Real-Time</div>
+    </div>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 5: RINCIAN KODE BERKAS A1 - C6 ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2 class="section-title">Klasifikasi Kode Berkas 3 Tingkat (A1 - C6)</h2>
+    </div>
+    <p>Setiap berkas dokumen yang diunggah ke dalam sistem secara otomatis diklasifikasikan ke dalam 3 folder utama dengan 12 kode berkas unik:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Kategori Folder</th>
+          <th>Kode</th>
+          <th>Nama Tipe Berkas</th>
+          <th>Deskripsi & Fungsi Berkas</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td rowspan="4"><strong>Folder 1: Klien</strong></td>
+          <td><span class="code-badge">A1</span></td>
+          <td><code>SPK</code></td>
+          <td>Surat Perintah Kerja resmi dari pihak Klien.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">A2</span></td>
+          <td><code>PENAWARAN_FINAL</code></td>
+          <td>Dokumen penawaran harga final yang disetujui Klien.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">A3</span></td>
+          <td><code>DRAWING_AS_BUILT</code></td>
+          <td>Gambar teknis akhir sesuai hasil terpasang di lapangan.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">A4</span></td>
+          <td><code>INVOICE</code></td>
+          <td>Berkas penagihan pembayaran resmi kepada Klien.</td>
+        </tr>
+        <tr>
+          <td rowspan="2"><strong>Folder 2: Subkon</strong></td>
+          <td><span class="code-badge">B1</span></td>
+          <td><code>SUBKON_DOCS</code></td>
+          <td>Berkas kontrak, SPK subkon, & berita acara vendor.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">B2</span></td>
+          <td><code>RFQ_SCAN_KOSONG</code></td>
+          <td>Scan berkas permintaan penawaran harga (RFQ) subkon.</td>
+        </tr>
+        <tr>
+          <td rowspan="6"><strong>Folder 3: Internal</strong></td>
+          <td><span class="code-badge">C1</span></td>
+          <td><code>DRAWING</code></td>
+          <td>Gambar teknik & perancangan internal tim engineering.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">C2</span></td>
+          <td><code>FOTO</code></td>
+          <td>Foto fisik dokumentasi progres pekerjaan proyek.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">C3</span></td>
+          <td><code>RAB</code></td>
+          <td>Rencana Anggaran Biaya internal operasional proyek.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">C4</span></td>
+          <td><code>PENAWARAN_DRAFT</code></td>
+          <td>Draft perkiraan penawaran harga proyek internal.</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">C5</span></td>
+          <td><code>BOQ</code></td>
+          <td>Bill of Quantities (Hasil Parser Excel Rincian Item).</td>
+        </tr>
+        <tr>
+          <td><span class="code-badge">C6</span></td>
+          <td><code>FORECAST_COST</code></td>
+          <td>Proyeksi perkiraan biaya & analisis margin keuntungan.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ==================== SECTION 6: MATRIKS HAK AKSES DETAIL PER ROLE ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2 class="section-title">Matriks Otorisasi Hak Akses Detail 7 User Role</h2>
+    </div>
+    <p>Setiap peran pengguna memiliki batasan otorisasi yang spesifik untuk menjaga keamanan data perusahaan:</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>User Role</th>
+          <th>Tambah Proyek</th>
+          <th>Akses Berkas Klien (A1 - A4)</th>
+          <th>Akses Berkas Subkon (B1 - B2)</th>
+          <th>Akses Berkas Internal (C1 - C6)</th>
+          <th>Akses Khusus / Finansial</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="role-badge role-super">SUPERADMIN</span></td>
+          <td>✅ <strong>Eksklusif</strong></td>
+          <td>✅ Full Access / Edit, Tambah, Hapus, Unggah (A1-A4)</td>
+          <td>✅ Full Access / Edit, Tambah, Hapus, Unggah (B1-B2)</td>
+          <td>✅ Full Access / Edit, Tambah, Hapus, Unggah (C1-C6)</td>
+          <td>Kelola Staf, Master Data, Audit Log, PO Release, Full CRUD</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-admin">PROYEK_ADMIN</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>✅ Upload & Edit (A1,A2,A3,A4)</td>
+          <td>✅ Upload & Edit (B1)<br>✅ View (B2)</td>
+          <td>✅ Upload & Edit (C2)<br>✅ View (C1,C3)</td>
+          <td>Manual Tracking Spreadsheet, Buka Folder Doc</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-monitoring">ADMIN_MONITORING</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>✅ <strong>View & Unduh (A1-A4)</strong></td>
+          <td>✅ <strong>View & Unduh (B1-B2)</strong></td>
+          <td>✅ <strong>View & Unduh (C1-C6)</strong></td>
+          <td>Monitoring Real-Time Laporan, Export ZIP All File</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-eng">ENGINEERING</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>✅ Upload & Edit (A3)<br>✅ View (A1,A2)<br>🔔 Notif (A4)</td>
+          <td>✅ Upload & Edit (B2)<br>✅ View & Notif (B1)</td>
+          <td>✅ Upload & Edit (C1,C3,C4,C5,C6)<br>✅ View (C2)</td>
+          <td>Riwayat Kerja Teknis, Form & Tracking RFQ</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-fin">FINANCE</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>✅ View (A2,A4)</td>
+          <td>✅ View (B1,B2)</td>
+          <td>✅ View (C3,C4,C5,C6)</td>
+          <td>Rilis Purchase Order (PO), Kelola Penagihan & Termin</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-proc">PROCUREMENT</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>✅ View (A2,A3)</td>
+          <td>✅ View (B2)</td>
+          <td>✅ Edit (C5)</td>
+          <td>Edit Harga Satuan Item Procurement & Evaluasi Subkon</td>
+        </tr>
+        <tr>
+          <td><span class="role-badge role-hrd">HRD / STAF</span></td>
+          <td>❌ Tersembunyi</td>
+          <td>❌ Terbatas</td>
+          <td>❌ Terbatas</td>
+          <td>❌ Terbatas</td>
+          <td>Rekapitulasi Absensi Geotagging & Laporan Kerja</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="page-break"></div>
+
+  <!-- ==================== SECTION 7: SCREENSHOTS PER USER ROLE WITH CLEAN TEXT ==================== -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2 class="section-title">Dokumentasi Visual & Analisis Komprehensif Antarmuka Per User Role</h2>
+    </div>
+    <p>Berikut ini adalah dokumentasi visual komprehensif berupa tangkapan layar (screenshots) dari seluruh 7 User Roles beserta penjelasan fungsi operasional, elemen antarmuka, dan alur kerjanya:</p>
+
+    <!-- 7.1 SUPERADMIN -->
+    <h3>7.1 User Role: SUPERADMIN (Root Administrative Control)</h3>
+    <p>Role Superadmin memegang otorisasi sistem tingkat tertinggi (Root Administrative Control). Peran ini memiliki tanggung jawab strategis dalam membuat proyek baru, mengelola akun seluruh staf, serta mengatur master data perusahaan.</p>
+    
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/Dashboard%201.png" class="img-frame" alt="Superadmin Dashboard 1" />
+      <div class="img-caption">Gambar 7.1.1: Dashboard Utama Superadmin dengan Akses Eksklusif "+ Tambah Proyek"</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Dashboard Superadmin bertindak sebagai pusat kontrol eksekutif (Executive Command Center) untuk memantau seluruh portofolio proyek konstruksi secara real-time. Halaman ini menyajikan tabel direktori proyek master yang memuat kode entitas unik perusahaan (MJK, DJI, IRI), nama proyek, deskripsi pekerjaan, tanggal pembuatan, serta status pengerjaan.</p>
+        <p><strong>Fitur Akses Khusus:</strong> Hanya akun ber-role Superadmin yang dapat melihat dan mengeksekusi tombol <strong>+ Tambah Proyek</strong> di kanan atas antarmuka untuk menginisiasi proyek baru beserta direktori folder berkas 3-tingkat.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/dashboard%202.png" class="img-frame" alt="Superadmin Dashboard Finance View" />
+      <div class="img-caption">Gambar 7.1.2: Dashboard Monitoring Keuangan (Finance View) untuk Superadmin</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Tampilan ini menyajikan pengawasan nilai penagihan proyek (Nilai Penagihan, PPh 2%, Grand Total, Status Penagihan, dan Skema Termin) untuk seluruh proyek yang dikelola oleh perusahaan.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/dashboard%203.png" class="img-frame" alt="Superadmin Dashboard Procurement View" />
+      <div class="img-caption">Gambar 7.1.3: Dashboard Monitoring Procurement (Modal & Pengeluaran) untuk Superadmin</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Tampilan pengawasan anggaran modal BoQ, realisasi pengeluaran proyek, perhitungan otomatis sisa modal, serta persentase efisiensi anggaran pengadaan.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/dashboard%204.png" class="img-frame" alt="Superadmin Dashboard Manual Tracking View" />
+      <div class="img-caption">Gambar 7.1.4: Dashboard Monitoring Proyek (Manual Tracking & Flow Status) untuk Superadmin</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Tampilan pengawasan progres fisik proyek manual tracking, status pekerjaan, nilai termin DPP, persentase pembayaran, serta kelengkapan dokumen SPK, BOQ, dan Drawing.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/Master%20data%201.png" class="img-frame" alt="Master Data Perusahaan" />
+      <div class="img-caption">Gambar 7.1.5: Pengelolaan Master Data Entitas Perusahaan (PT. Modern Jaya Konstruksi)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Modul ini digunakan oleh Superadmin untuk mendaftarkan dan mengelola kode entitas anak perusahaan (MJK, DJI, IRI) sebagai identitas resmi proyek.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/master%20data%202.png" class="img-frame" alt="Master Data Klien" />
+      <div class="img-caption">Gambar 7.1.6: Pengelolaan Master Data Klien Resmi Perusahaan</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Digunakan untuk mencatat direktori mitra kerja/klien utama perusahaan beserta informasi penanggung jawab untuk penataan berkas Folder 1 Klien.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/master%20data%203.png" class="img-frame" alt="Master Data Subkon" />
+      <div class="img-caption">Gambar 7.1.7: Pengelolaan Database Master Vendor Subkontraktor</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Direktori master vendor subkontraktor yang akan terhubung secara otomatis ke modul Data Subkon dan Tracking RFQ Engineering.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Super%20Admin/Subkon.png" class="img-frame" alt="Superadmin Subkon Management" />
+      <div class="img-caption">Gambar 7.1.8: Pengawasan Data Subkon (Parent-Child) & Penautan Dokumen Otomatis</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengawasan relasi parent-child antara proyek dengan vendor subkontraktor, lengkap dengan persentase termin pembayaran dan penautan berkas RFQ/BOQ/SPK.</p>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.2 PROYEK ADMIN -->
+    <h3>7.2 User Role: PROYEK_ADMIN (Lapangan & Operational Tracking)</h3>
+    <p>Role Proyek Admin bertanggung jawab atas pencatatan harian di lapangan, penginputan spreadsheet manual tracking, pengelolaan berkas 3 tingkat, serta tracking termin subkontraktor.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Proyek%20admin/dashboard.png" class="img-frame" alt="Proyek Admin Dashboard" />
+      <div class="img-caption">Gambar 7.2.1: Dashboard Monitoring Proyek (Manual Tracking Spreadsheet)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Format spreadsheet interaktif untuk pembaruan cepat data lapangan dengan fitur <em>sticky action column</em> pada tombol aksi pengeditan.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Proyek%20admin/data%20subkon.png" class="img-frame" alt="Proyek Admin Data Subkon" />
+      <div class="img-caption">Gambar 7.2.2: Kelola Data Subkon (Parent-Child) & Status Pembayaran Termin</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Penginputan rincian nilai kontrak jasa subkon, persentase skema termin (DP, Termin 1-8), serta penautan berkas dokumen penagihan vendor.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Proyek%20admin/klien.png" class="img-frame" alt="Proyek Admin Folder Klien" />
+      <div class="img-caption">Gambar 7.2.3: Penjelajah Berkas Folder 1 Klien (Kode A1 - A4)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengelolaan dokumen resmi dari/kepada Klien (A1: SPK, A2: Penawaran Final, A3: Drawing As-Built, A4: Invoice Penagihan).</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Proyek%20admin/subkon.png" class="img-frame" alt="Proyek Admin Folder Subkon" />
+      <div class="img-caption">Gambar 7.2.4: Penjelajah Berkas Folder 2 Subkon (Kode B1 - B2)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengelolaan berkas kontrak vendor subkon (B1: Subkon Docs & SPK Subkon, B2: RFQ Scan Kosong Penawaran Vendor).</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Proyek%20admin/internal.png" class="img-frame" alt="Proyek Admin Folder Internal" />
+      <div class="img-caption">Gambar 7.2.5: Penjelajah Berkas Folder 3 Internal (Kode C1 - C6)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengelolaan berkas internal proyek (C1: Drawing, C2: Foto Progress, C3: RAB, C4: Draft Penawaran, C5: BOQ, C6: Forecast Cost).</p>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.3 ADMIN MONITORING -->
+    <h3>7.3 User Role: ADMIN_MONITORING (Independent Audit Oversight)</h3>
+    <p>Role Admin Monitoring merupakan peran pengawas independen (Audit Oversight Role) yang bertugas memantau seluruh transparansi progres pekerjaan dan kelengkapan dokumen proyek.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/dashboard.png" class="img-frame" alt="Admin Monitor Dashboard" />
+      <div class="img-caption">Gambar 7.3.1: Dashboard Pengawasan Transparansi Proyek Admin Monitoring</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Otorisasi Pengawasan:</strong> Tampilan utama pengawasan proyek tanpa tombol modifikasi/tambah untuk menjaga independensi audit berkas.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/proyek.png" class="img-frame" alt="Admin Monitor Proyek Directory" />
+      <div class="img-caption">Gambar 7.3.2: Direktori Aktivitas Proyek Terkini untuk Audit Oversight</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Otorisasi Pengawasan:</strong> Menampilkan seluruh aktivitas update berkas dan status pengerjaan proyek dari seluruh divisi.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/data%20subkon.png" class="img-frame" alt="Admin Monitor Data Subkon" />
+      <div class="img-caption">Gambar 7.3.3: Audit Monitoring Data Subkontraktor & Berkas Vendor</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Otorisasi Pengawasan:</strong> Pemantauan realisasi termin pembayaran subkontraktor serta validasi dokumen pendukung penagihan vendor.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/klien.png" class="img-frame" alt="Admin Monitor Folder Klien" />
+      <div class="img-caption">Gambar 7.3.4: Akses View & Unduh Berkas Folder 1 Klien (A1 - A4)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Otorisasi Pengawasan:</strong> Hak akses melihat dan mengunduh berkas SPK Klien, Penawaran Final, As-Built Drawing, dan Invoice Penagihan.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/subkon.png" class="img-frame" alt="Admin Monitor Folder Subkon" />
+      <div class="img-caption">Gambar 7.3.5: Akses View & Unduh Berkas Folder 2 Subkon (B1 - B2)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Otorisasi Pengawasan:</strong> Hak akses pengawasan dokumen kontrak subkon dan berkas scan penawaran RFQ vendor.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Admin%20Monitor/internal.png" class="img-frame" alt="Admin Monitor Folder Internal & Download All" />
+      <div class="img-caption">Gambar 7.3.6: Akses View Berkas Internal (C1-C6) & Fitur Bulk Export ZIP</div>
+      <div class="img-desc-text">
+        <p><strong>Fitur Bulk Package Export ZIP:</strong> Dilengkapi tombol <strong>Download All</strong> untuk memaketkan 100% seluruh dokumen proyek ke dalam satu berkas arsip ZIP.</p>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.4 ENGINEERING -->
+    <h3>7.4 User Role: ENGINEERING (Perencanaan Teknis & Tracking RFQ)</h3>
+    <p>Role Engineering bertanggung jawab atas perencanaan teknis konstruksi, perancangan gambar (Drawing), penyusunan RAB/BOQ, tracking RFQ subkon, serta obrolan tim real-time.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Enginering/dashboard.png" class="img-frame" alt="Engineering Dashboard" />
+      <div class="img-caption">Gambar 7.4.1: Dashboard Khas Unit Kerja Engineering</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Rekapitulasi proyek teknis yang membutuhkan perancangan gambar (C1: DRAWING), penyusunan RAB (C3), dan verifikasi BOQ (C5).</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Enginering/rfq.png" class="img-frame" alt="Tracking RFQ Table" />
+      <div class="img-caption">Gambar 7.4.2: Tabel Tracking RFQ Pekerjaan & Evaluasi Status Subkon 1, 2, 3</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Penginputan uraian pekerjaan, rfq date, progress, serta evaluasi status penawaran vendor subkon (Unsent, QUO, Nego, SPK, Deal).</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Enginering/unggah.png" class="img-frame" alt="Unggah Berkas Engineering" />
+      <div class="img-caption">Gambar 7.4.3: Form Unggah Berkas Teknis (Drawing, RAB, BOQ Excel Parser Engine)</div>
+      <div class="img-desc-text">
+        <p><strong>Automatic Excel Parsing:</strong> Saat berkas Excel BOQ diunggah, sistem parser backend mengekstrak volume, unit, dan rate ke database secara otomatis.</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="img-container">
+        <img src="Dokumentasi/Enginering/chat%20masuk%20dari%20user%20role%20Enginer.png" class="img-frame" alt="Chat Masuk Engineering" />
+        <div class="img-caption">Gambar 7.4.4: Indikator Notifikasi Chat Masuk Tim Engineering</div>
+        <div class="img-desc-text">
+          <p><strong>Real-Time Chat Notification:</strong> Notifikasi pesan obrolan instan antar user role untuk percepatan koordinasi teknis di lapangan.</p>
+        </div>
+      </div>
+      <div class="img-container">
+        <img src="Dokumentasi/Enginering/Balasan%20chat.png" class="img-frame" alt="Balasan Chat File Transfer" />
+        <div class="img-caption">Gambar 7.4.5: Ruang Obrolan Inter-Role & Direct Blob File Transfer</div>
+        <div class="img-desc-text">
+          <p><strong>Direct File Transfer:</strong> Fitur pengiriman lampiran berkas biner langsung di ruang chat dengan nama file asli yang utuh.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.5 FINANCE -->
+    <h3>7.5 User Role: FINANCE (Manajemen Keuangan & Penagihan)</h3>
+    <p>Role Finance bertanggung jawab atas pencatatan termin penagihan klien, pemotongan PPh 2%, perhitungan Grand Total, rilis dokumen PO, serta verifikasi invoice A4.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Finance/dashboard.png" class="img-frame" alt="Finance Dashboard" />
+      <div class="img-caption">Gambar 7.5.1: Dashboard Monitoring Keuangan (Nilai Penagihan, PPh, Grand Total, Status & Termin)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Pengelolaan Arus Kas:</strong> Monitoring nilai kontrak, PPh 2%, Grand Total dengan format titik pemisah ribuan, serta dropdown status/termin.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Finance/proyek.png" class="img-frame" alt="Finance Proyek Directory" />
+      <div class="img-caption">Gambar 7.5.2: Direktori Proyek Finance dengan Status Rilis Penagihan</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengawasan daftar proyek yang membutuhkan verifikasi kelengkapan dokumen penagihan sebelum penyerahan invoice.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Finance/klien.png" class="img-frame" alt="Finance Folder Klien" />
+      <div class="img-caption">Gambar 7.5.3: Penjelajah Berkas Folder 1 Klien untuk Penagihan (Kode A2 & A4)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengelolaan dokumen penawaran final (A2) dan invoice penagihan resmi (A4) kepada pihak Klien.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Finance/subkon.png" class="img-frame" alt="Finance Folder Subkon" />
+      <div class="img-caption">Gambar 7.5.4: Penjelajah Berkas Folder 2 Subkon untuk Rilis Pembayaran Vendor</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Verifikasi berkas tagihan subkontraktor (B1) sebelum rilis pencairan termin pembayaran vendor.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Finance/internal.png" class="img-frame" alt="Finance Folder Internal" />
+      <div class="img-caption">Gambar 7.5.5: Penjelajah Berkas Folder 3 Internal Finansial (C3 RAB, C5 BOQ, C6 Forecast)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Proteksi Data:</strong> Akses pemeriksaan berkas estimasi biaya internal (C3, C5, C6) untuk validasi margin keuntungan proyek.</p>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.6 PROCESSING / PROCUREMENT -->
+    <h3>7.6 User Role: PROCESSING (PROCUREMENT) (Pengadaan Material & Evaluasi Vendor)</h3>
+    <p>Role Processing / Procurement bertugas mengelola pengadaan barang/jasa, menganalisis modal BoQ & pengeluaran proyek, menghitung sisa modal otomatis, serta evaluasi vendor.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Procesing/dashboard.png" class="img-frame" alt="Procurement Dashboard" />
+      <div class="img-caption">Gambar 7.6.1: Dashboard Monitoring Procurement (Modal BoQ, Pengeluaran, Sisa Modal & %)</div>
+      <div class="img-desc-text">
+        <p><strong>Rumus Formula Otomatis:</strong> Penghitungan dinamis Sisa Modal (Modal BoQ - Pengeluaran) dan persentase efisiensi anggaran pengadaan.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Procesing/proyek.png" class="img-frame" alt="Procurement Proyek Directory" />
+      <div class="img-caption">Gambar 7.6.2: Direktori Proyek Procurement & Penyesuaian Harga Satuan BOQ</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengawasan daftar proyek pengadaan serta fasilitas penyesuaian (adjustment) tarif harga satuan item BOQ.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Procesing/klien.png" class="img-frame" alt="Procurement Folder Klien" />
+      <div class="img-caption">Gambar 7.6.3: Akses Unduh Berkas Folder 1 Klien Terkait Pengadaan (Kode A2 & A3)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Akses peninjauan spesifikasi material pada dokumen penawaran final (A2) dan drawing teknis terpasang (A3).</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Procesing/subkon.png" class="img-frame" alt="Procurement Folder Subkon" />
+      <div class="img-caption">Gambar 7.6.4: Berkas Folder 2 Subkon untuk Evaluasi Penawaran Vendor (Kode B2 RFQ)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Peninjauan berkas scan penawaran harga vendor subkon (B2: RFQ Scan Kosong) untuk pemilihan subkon terbaik.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Procesing/internal.png" class="img-frame" alt="Procurement Folder Internal" />
+      <div class="img-caption">Gambar 7.6.5: Berkas Folder 3 Internal Procurement (Kode C5 BOQ Parser)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Fungsi Utama:</strong> Pengelolaan berkas Bill of Quantities (C5) hasil parser Excel untuk penyesuaian harga satuan pengadaan.</p>
+      </div>
+    </div>
+
+    <div class="page-break"></div>
+
+    <!-- 7.7 HRD & STAF -->
+    <h3>7.7 User Role: HRD & STAF (Presensi Geotagging & Laporan Kerja)</h3>
+    <p>Role HRD dan Staf bertanggung jawab atas pengelolaan kedisiplinan kehadiran karyawan melalui teknologi absensi geolokalidasi (swafoto + GPS) serta pelaporan hasil kerja harian staf di area proyek.</p>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Hrd/Laporan%20absen.png" class="img-frame" alt="Laporan Absensi HRD" />
+      <div class="img-caption">Gambar 7.7.1: Rekapitulasi Laporan Absensi Staf (Foto Swafoto & Geotagging GPS)</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Geotagging Verification:</strong> Rekapitulasi presensi kehadiran seluruh personel proyek dilengkapi foto swafoto (selfie) dan koordinat lokasi geografis GPS.</p>
+      </div>
+    </div>
+
+    <div class="img-container">
+      <img src="Dokumentasi/Hrd/Laporan%20kerja.png" class="img-frame" alt="Laporan Kerja Staf" />
+      <div class="img-caption">Gambar 7.7.2: Modul Pelaporan Hasil Kerja Harian Karyawan Lapangan</div>
+      <div class="img-desc-text">
+        <p><strong>Latar Belakang & Pencatatan Progres Harian:</strong> Pelaporan rincian aktivitas, lokasi pengerjaan, jam kerja, dan foto bukti fisik hasil kerja harian karyawan.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
