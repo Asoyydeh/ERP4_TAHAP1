@@ -5,15 +5,15 @@ import api, { getApiBaseUrl } from '@/lib/api';
 // import Cookies from 'js-cookie';
 import { Document, Project, BoqHeader, PenawaranHeader, RfqHeader } from '@/types';
 import { useAuth } from '@/lib/AuthContext';
-import {
-  Search,
-  Download,
-  Trash2,
-  Eye,
-  RefreshCw,
-  FileSpreadsheet,
-  FileText,
-  Image as ImageIcon,
+import { 
+  Search, 
+  Download, 
+  Trash2, 
+  Eye, 
+  RefreshCw, 
+  FileSpreadsheet, 
+  FileText, 
+  Image as ImageIcon, 
   FileCheck,
   X
 } from 'lucide-react';
@@ -37,8 +37,48 @@ const canDownloadDoc = (role: string, fileType: string) => {
   return false;
 };
 
-export default function DocumentsPage() {
-  const { user, isSuperAdmin, isProyekAdmin } = useAuth();
+interface DocumentExplorerProps {
+  group: 'klien' | 'subkon' | 'internal';
+}
+
+const GROUP_FILE_TYPES = {
+  klien: ['SPK', 'PENAWARAN_FINAL', 'DRAWING_AS_BUILT', 'INVOICE'],
+  subkon: ['SUBKON_DOCS', 'RFQ_SCAN_KOSONG'],
+  internal: ['DRAWING', 'FOTO', 'RAB', 'PENAWARAN_DRAFT', 'BOQ', 'FORECAST_COST']
+};
+
+const GROUP_DETAILS = {
+  klien: {
+    title: 'Dokumen Klien',
+    description: 'Daftar berkas kontrak, penawaran final, invoice, dan as-built drawing dari klien.'
+  },
+  subkon: {
+    title: 'Dokumen Subkon',
+    description: 'Daftar dokumen subkontraktor dan RFQ penawaran harga vendor.'
+  },
+  internal: {
+    title: 'Dokumen Internal',
+    description: 'Daftar gambar teknis, foto lapangan, RAB, BOQ, dan forecast cost internal.'
+  }
+};
+
+const DOC_TYPE_LABELS: Record<string, string> = {
+  SPK: 'SPK (Klien)',
+  PENAWARAN_FINAL: 'Penawaran Final (Klien)',
+  DRAWING_AS_BUILT: 'Drawing As-Built (Klien)',
+  INVOICE: 'Invoice (Klien)',
+  SUBKON_DOCS: 'Subkon Docs',
+  RFQ_SCAN_KOSONG: 'RFQ Scan / Kosong',
+  DRAWING: 'Drawing (Internal)',
+  FOTO: 'Foto (Internal)',
+  RAB: 'RAB (Internal)',
+  PENAWARAN_DRAFT: 'Penawaran Draft',
+  BOQ: 'BOQ (Cost Material Excel)',
+  FORECAST_COST: 'Forecast Cost (Excel)',
+};
+
+export default function DocumentExplorer({ group }: DocumentExplorerProps) {
+  const { user, isSuperAdmin, isProyekAdmin, isAdminMonitoring } = useAuth();
   const [documents, setDocuments] = useState<Document[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,7 +116,7 @@ export default function DocumentsPage() {
 
   useEffect(() => {
     fetchDocsAndProjects();
-  }, []);
+  }, [group]);
 
   const handleDownload = async (doc: Document) => {
     try {
@@ -105,14 +145,15 @@ export default function DocumentsPage() {
   const handleDownloadAll = async () => {
     try {
       setDownloadingAll(true);
-      const response = await api.get('/documents/download-all', {
+      // Download all filtered by group
+      const response = await api.get(`/documents/download-all?group=${group}`, {
         responseType: 'blob',
       });
       const file = new Blob([response.data], { type: 'application/zip' });
       const fileURL = URL.createObjectURL(file);
       const link = document.createElement('a');
       link.href = fileURL;
-      link.setAttribute('download', 'semua-berkas-proyek.zip');
+      link.setAttribute('download', `semua-berkas-${group}.zip`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -162,23 +203,43 @@ export default function DocumentsPage() {
   };
 
   // Filtered List
+  const allowedTypes = GROUP_FILE_TYPES[group];
   const filteredDocuments = documents.filter((doc) => {
+    const isDocInGroup = allowedTypes.includes(doc.fileType);
     const matchSearch = doc.fileName.toLowerCase().includes(search.toLowerCase()) ||
-      doc.uploadedBy?.name.toLowerCase().includes(search.toLowerCase());
+                        doc.uploadedBy?.name.toLowerCase().includes(search.toLowerCase());
     const matchProj = filterProject ? doc.projectId === filterProject : true;
     const matchType = filterType ? doc.fileType === filterType : true;
-    return matchSearch && matchProj && matchType;
+    return isDocInGroup && matchSearch && matchProj && matchType;
   });
+
+  if (isProyekAdmin && group === 'internal') {
+    return (
+      <div className="bg-white rounded-2xl p-12 border border-slate-100 shadow-sm text-center">
+        <div className="max-w-md mx-auto space-y-3">
+          <div className="h-12 w-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold">
+            🚫
+          </div>
+          <h3 className="text-base font-bold text-slate-800">Folder Internal Tidak Ditampilkan</h3>
+          <p className="text-xs text-slate-500">
+            Folder Internal tidak ditampilkan untuk user role <span className="font-semibold text-slate-700">PROYEK_ADMIN</span> dan stafnya.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const details = GROUP_DETAILS[group];
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100">Penjelajah Dokumen Proyek</h2>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Daftar semua dokumen proyek yang diunggah oleh Engineering beserta data detail terurai.</p>
+          <h2 className="text-xl font-bold text-slate-800">{details.title}</h2>
+          <p className="text-xs text-slate-500 mt-1">{details.description}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          {(isSuperAdmin || isProyekAdmin) && (
+          {(isSuperAdmin || isProyekAdmin || isAdminMonitoring) && (
             <button
               onClick={handleDownloadAll}
               disabled={downloadingAll || loading}
@@ -190,7 +251,7 @@ export default function DocumentsPage() {
           )}
           <button
             onClick={fetchDocsAndProjects}
-            className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:bg-slate-900 rounded-xl shadow-xs transition-all"
+            className="inline-flex items-center px-4 py-2 text-xs font-semibold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl shadow-xs transition-all"
           >
             <RefreshCw className="mr-1.5 h-4 w-4" />
             Refresh
@@ -199,7 +260,7 @@ export default function DocumentsPage() {
       </div>
 
       {/* Filter and Search Controls */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700 shadow-sm flex flex-col md:flex-row gap-3">
+      <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-3 h-4.5 w-4.5 text-slate-400" />
           <input
@@ -207,7 +268,7 @@ export default function DocumentsPage() {
             placeholder="Cari nama berkas, uploader..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="block w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/20 pl-10 pr-4 py-2.5 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-sky-500 focus:bg-white dark:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm"
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 pl-10 pr-4 py-2.5 text-slate-800 placeholder-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 text-sm"
           />
         </div>
 
@@ -215,7 +276,7 @@ export default function DocumentsPage() {
           <select
             value={filterProject}
             onChange={(e) => setFilterProject(e.target.value)}
-            className="block w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/20 px-3.5 py-2.5 text-slate-800 dark:text-slate-100 focus:border-sky-500 focus:bg-white dark:bg-slate-800 focus:outline-none text-sm cursor-pointer"
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none text-sm cursor-pointer"
           >
             <option value="">Semua Proyek</option>
             {projects.map((p) => (
@@ -228,21 +289,12 @@ export default function DocumentsPage() {
           <select
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
-            className="block w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/20 px-3.5 py-2.5 text-slate-800 dark:text-slate-100 focus:border-sky-500 focus:bg-white dark:bg-slate-800 focus:outline-none text-sm cursor-pointer"
+            className="block w-full rounded-xl border border-slate-200 bg-slate-50/20 px-3.5 py-2.5 text-slate-800 focus:border-sky-500 focus:bg-white focus:outline-none text-sm cursor-pointer"
           >
             <option value="">Semua Tipe Dokumen</option>
-            <option value="SPK">SPK (Klien)</option>
-            <option value="PENAWARAN_FINAL">PENAWARAN FINAL (Klien)</option>
-            <option value="DRAWING_AS_BUILT">DRAWING AS-BUILT (Klien)</option>
-            <option value="INVOICE">INVOICE (Klien)</option>
-            <option value="SUBKON_DOCS">SUBKON DOCS</option>
-            <option value="RFQ_SCAN_KOSONG">RFQ SCAN / KOSONG</option>
-            <option value="DRAWING">DRAWING (Internal Gambar)</option>
-            <option value="FOTO">FOTO (Internal)</option>
-            <option value="RAB">RAB (Internal)</option>
-            <option value="PENAWARAN_DRAFT">PENAWARAN DRAFT</option>
-            <option value="BOQ">BOQ (Cost Material Excel)</option>
-            <option value="FORECAST_COST">FORECAST COST (Excel)</option>
+            {allowedTypes.map((type) => (
+              <option key={type} value={type}>{DOC_TYPE_LABELS[type] || type}</option>
+            ))}
           </select>
         </div>
       </div>
@@ -254,12 +306,12 @@ export default function DocumentsPage() {
       )}
 
       {/* Documents Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           {filteredDocuments.length > 0 ? (
             <table className="min-w-full divide-y divide-slate-100">
               <thead>
-                <tr className="text-left text-2xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-900/50">
+                <tr className="text-left text-2xs font-semibold text-slate-400 uppercase tracking-wider bg-slate-50/50">
                   <th className="py-3.5 px-6 rounded-l-lg">Nama Dokumen</th>
                   <th className="py-3.5 px-6">Proyek</th>
                   <th className="py-3.5 px-6">Tipe Dokumen</th>
@@ -269,7 +321,7 @@ export default function DocumentsPage() {
                   <th className="py-3.5 px-6 text-right rounded-r-lg">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm text-slate-600 dark:text-slate-300">
+              <tbody className="divide-y divide-slate-100 text-sm text-slate-600">
                 {filteredDocuments.map((doc) => {
                   const isOwner = doc.uploadedById === user?.id;
                   const canDelete = user?.role === 'SUPERADMIN' || isOwner;
@@ -277,33 +329,34 @@ export default function DocumentsPage() {
                   const hasDetails = isExcel && (doc.fileType === 'BOQ' || doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'RFQ_SCAN_KOSONG');
 
                   return (
-                    <tr key={doc.id} className="hover:bg-slate-50 dark:bg-slate-900/30 transition-all">
-                      <td className="py-4 px-6 font-semibold text-slate-800 dark:text-slate-100 flex items-center space-x-2.5">
+                    <tr key={doc.id} className="hover:bg-slate-50/30 transition-all">
+                      <td className="py-4 px-6 font-semibold text-slate-800 flex items-center space-x-2.5">
                         {(doc.fileType === 'DRAWING' || doc.fileType === 'DRAWING_AS_BUILT') && <ImageIcon className="h-5 w-5 text-sky-500 shrink-0" />}
                         {doc.fileType === 'BOQ' && <FileSpreadsheet className="h-5 w-5 text-emerald-600 shrink-0" />}
                         {(doc.fileType === 'PENAWARAN_DRAFT' || doc.fileType === 'PENAWARAN_FINAL') && <FileCheck className="h-5 w-5 text-purple-600 shrink-0" />}
-                        {(doc.fileType === 'RFQ_SCAN_KOSONG' || doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' || doc.fileType === 'RAB' || doc.fileType === 'FORECAST_COST' || doc.fileType === 'FOTO') && <FileText className="h-5 w-5 text-slate-500 dark:text-slate-400 shrink-0" />}
+                        {(doc.fileType === 'RFQ_SCAN_KOSONG' || doc.fileType === 'SPK' || doc.fileType === 'INVOICE' || doc.fileType === 'SUBKON_DOCS' || doc.fileType === 'RAB' || doc.fileType === 'FORECAST_COST' || doc.fileType === 'FOTO') && <FileText className="h-5 w-5 text-slate-500 shrink-0" />}
                         <span className="truncate max-w-[200px]" title={doc.fileName}>{doc.fileName}</span>
                       </td>
-                      <td className="py-4 px-6 text-slate-500 dark:text-slate-400">{doc.project?.name}</td>
+                      <td className="py-4 px-6 text-slate-500">{doc.project?.name}</td>
                       <td className="py-4 px-6">
                         <span className="font-bold text-xs">{doc.fileType}</span>
                       </td>
                       <td className="py-4 px-6">
                         <div>
-                          <span className="font-medium text-slate-700 dark:text-slate-200">{doc.uploadedBy?.name}</span>
+                          <span className="font-medium text-slate-700">{doc.uploadedBy?.name}</span>
                           <span className="block text-3xs text-slate-400 font-mono mt-0.5">{doc.uploadedBy?.role}</span>
                         </div>
                       </td>
                       <td className="py-4 px-6 text-slate-400 text-xs">{(doc.fileSize / 1024).toFixed(1)} KB</td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border ${doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border ${
+                          doc.status === 'APPROVED' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
                           doc.status === 'REVISED_BY_PROCUREMENT' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                            doc.status === 'PO_PENDING' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                              doc.status === 'PO_RELEASED' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
-                                doc.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
-                                  'bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-100 dark:border-slate-700'
-                          }`}>
+                          doc.status === 'PO_PENDING' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          doc.status === 'PO_RELEASED' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' :
+                          doc.status === 'REJECTED' ? 'bg-rose-50 text-rose-700 border-rose-100' :
+                          'bg-slate-50 text-slate-700 border-slate-100'
+                        }`}>
                           {doc.status.replace(/_/g, ' ')}
                         </span>
                       </td>
@@ -311,7 +364,7 @@ export default function DocumentsPage() {
                         {hasDetails ? (
                           <button
                             onClick={() => handleOpenDetails(doc)}
-                            className="inline-flex p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:bg-slate-900 text-sky-600 hover:text-sky-700 transition-all shadow-2xs"
+                            className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-sky-600 hover:text-sky-700 transition-all shadow-2xs"
                             title="Buka Detail Rincian Excel"
                           >
                             <Eye className="h-4 w-4" />
@@ -319,7 +372,7 @@ export default function DocumentsPage() {
                         ) : (
                           <button
                             onClick={() => handleViewFile(doc)}
-                            className="inline-flex p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:bg-slate-900 text-sky-600 hover:text-sky-700 transition-all shadow-2xs"
+                            className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-sky-600 hover:text-sky-700 transition-all shadow-2xs"
                             title="Buka / Preview Berkas"
                           >
                             <Eye className="h-4 w-4" />
@@ -328,7 +381,7 @@ export default function DocumentsPage() {
                         {canDownloadDoc(user?.role || '', doc.fileType) && (
                           <button
                             onClick={() => handleDownload(doc)}
-                            className="inline-flex p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-200 transition-all shadow-2xs"
+                            className="inline-flex p-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-500 hover:text-slate-700 transition-all shadow-2xs"
                             title="Unduh Berkas Asli"
                           >
                             <Download className="h-4 w-4" />
@@ -360,13 +413,13 @@ export default function DocumentsPage() {
       {/* DETAIL MODAL PANELS */}
       {selectedDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-xs p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex justify-between items-start pb-4 border-b border-slate-100 dark:border-slate-700">
+          <div className="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-slate-100 flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-start pb-4 border-b border-slate-100">
               <div>
-                <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Rincian Data: {selectedDoc.fileName}</h3>
+                <h3 className="text-base font-bold text-slate-800">Rincian Data: {selectedDoc.fileName}</h3>
                 <p className="text-3xs text-slate-400 mt-1">Tipe: <span className="font-bold">{selectedDoc.fileType}</span> | Proyek: {selectedDoc.project?.name}</p>
               </div>
-              <button onClick={() => setSelectedDoc(null)} className="text-slate-400 hover:text-slate-600 dark:text-slate-300">
+              <button onClick={() => setSelectedDoc(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -379,16 +432,16 @@ export default function DocumentsPage() {
                   {/* BOQ RENDER */}
                   {boqDetails && (
                     <div className="space-y-4">
-                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700 flex justify-between items-center">
+                      <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 flex justify-between items-center">
                         <div>
                           <p className="text-slate-400 font-semibold">Total Anggaran BOQ:</p>
-                          <h4 className="text-lg font-bold text-slate-800 dark:text-slate-100 mt-1">Rp {boqDetails.totalAmount.toLocaleString('id-ID')}</h4>
+                          <h4 className="text-lg font-bold text-slate-800 mt-1">Rp {boqDetails.totalAmount.toLocaleString('id-ID')}</h4>
                         </div>
                         <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-bold">BOQ Sheet</span>
                       </div>
-                      <div className="border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-100 text-left">
-                          <thead className="bg-slate-50 dark:bg-slate-900/50 font-semibold text-slate-400 uppercase tracking-wider">
+                      <div className="border border-slate-100 rounded-xl overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-100 text-left whitespace-nowrap">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
                             <tr>
                               <th className="py-2.5 px-4">Kode WBS</th>
                               <th className="py-2.5 px-4">Deskripsi Pekerjaan</th>
@@ -398,15 +451,15 @@ export default function DocumentsPage() {
                               <th className="py-2.5 px-4 text-right">Total Sub</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 text-slate-600 dark:text-slate-300">
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
                             {boqDetails.items?.map((item) => (
-                              <tr key={item.id} className="hover:bg-slate-50 dark:bg-slate-900/10">
+                              <tr key={item.id} className="hover:bg-slate-50/10">
                                 <td className="py-2.5 px-4 font-mono">{item.wbsCode || '-'}</td>
-                                <td className="py-2.5 px-4 font-medium text-slate-700 dark:text-slate-200">{item.description}</td>
+                                <td className="py-2.5 px-4 font-medium text-slate-700">{item.description}</td>
                                 <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
                                 <td className="py-2.5 px-4 text-right">Rp {item.rateEngineering.toLocaleString('id-ID')}</td>
                                 <td className="py-2.5 px-4 text-right text-sky-600 font-bold">Rp {item.rateProcurement.toLocaleString('id-ID')}</td>
-                                <td className="py-2.5 px-4 text-right font-bold text-slate-800 dark:text-slate-100">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
+                                <td className="py-2.5 px-4 text-right font-bold text-slate-800">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -418,14 +471,14 @@ export default function DocumentsPage() {
                   {/* PENAWARAN RENDER */}
                   {penawaranDetails && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <div>
                           <p className="text-slate-400 font-semibold">Nama Vendor:</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">{penawaranDetails.vendorName}</h4>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{penawaranDetails.vendorName}</h4>
                         </div>
                         <div>
                           <p className="text-slate-400 font-semibold">Nomor Penawaran:</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">{penawaranDetails.quoteNumber || '-'}</h4>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{penawaranDetails.quoteNumber || '-'}</h4>
                         </div>
                         <div>
                           <p className="text-slate-400 font-semibold">Total Nilai Penawaran:</p>
@@ -433,14 +486,14 @@ export default function DocumentsPage() {
                         </div>
                         <div>
                           <p className="text-slate-400 font-semibold">Masa Berlaku:</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">
+                          <h4 className="font-bold text-slate-700 mt-0.5">
                             {penawaranDetails.validityDate ? new Date(penawaranDetails.validityDate).toLocaleDateString('id-ID') : '-'}
                           </h4>
                         </div>
                       </div>
-                      <div className="border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-100 text-left">
-                          <thead className="bg-slate-50 dark:bg-slate-900/50 font-semibold text-slate-400 uppercase tracking-wider">
+                      <div className="border border-slate-100 rounded-xl overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-100 text-left whitespace-nowrap">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
                             <tr>
                               <th className="py-2.5 px-4">No</th>
                               <th className="py-2.5 px-4">Nama Barang / Deskripsi</th>
@@ -449,14 +502,14 @@ export default function DocumentsPage() {
                               <th className="py-2.5 px-4 text-right">Total Sub</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 text-slate-600 dark:text-slate-300">
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
                             {penawaranDetails.items?.map((item) => (
-                              <tr key={item.id} className="hover:bg-slate-50 dark:bg-slate-900/10">
+                              <tr key={item.id} className="hover:bg-slate-50/10">
                                 <td className="py-2.5 px-4 font-mono">{item.itemNo}</td>
-                                <td className="py-2.5 px-4 font-semibold text-slate-700 dark:text-slate-200">{item.description}</td>
+                                <td className="py-2.5 px-4 font-semibold text-slate-700">{item.description}</td>
                                 <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
                                 <td className="py-2.5 px-4 text-right">Rp {item.unitPrice.toLocaleString('id-ID')}</td>
-                                <td className="py-2.5 px-4 text-right font-bold text-slate-800 dark:text-slate-100">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
+                                <td className="py-2.5 px-4 text-right font-bold text-slate-800">Rp {item.totalPrice.toLocaleString('id-ID')}</td>
                               </tr>
                             ))}
                           </tbody>
@@ -468,25 +521,25 @@ export default function DocumentsPage() {
                   {/* RFQ RENDER */}
                   {rfqDetails && (
                     <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4 bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+                      <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
                         <div>
                           <p className="text-slate-400 font-semibold">Nomor RFQ:</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">{rfqDetails.rfqNumber}</h4>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{rfqDetails.rfqNumber}</h4>
                         </div>
                         <div>
                           <p className="text-slate-400 font-semibold">Batas Target Tanggal:</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">
+                          <h4 className="font-bold text-slate-700 mt-0.5">
                             {rfqDetails.targetDate ? new Date(rfqDetails.targetDate).toLocaleDateString('id-ID') : '-'}
                           </h4>
                         </div>
                         <div className="col-span-2">
                           <p className="text-slate-400 font-semibold">Ketentuan Serah Terima & Syarat Pembayaran (Terms):</p>
-                          <h4 className="font-bold text-slate-700 dark:text-slate-200 mt-0.5">{rfqDetails.terms || '-'}</h4>
+                          <h4 className="font-bold text-slate-700 mt-0.5">{rfqDetails.terms || '-'}</h4>
                         </div>
                       </div>
-                      <div className="border border-slate-100 dark:border-slate-700 rounded-xl overflow-hidden">
-                        <table className="min-w-full divide-y divide-slate-100 text-left">
-                          <thead className="bg-slate-50 dark:bg-slate-900/50 font-semibold text-slate-400 uppercase tracking-wider">
+                      <div className="border border-slate-100 rounded-xl overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-100 text-left whitespace-nowrap">
+                          <thead className="bg-slate-50/50 font-semibold text-slate-400 uppercase tracking-wider">
                             <tr>
                               <th className="py-2.5 px-4">No</th>
                               <th className="py-2.5 px-4">Nama Barang / Deskripsi</th>
@@ -495,13 +548,13 @@ export default function DocumentsPage() {
                               <th className="py-2.5 px-4">Catatan</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-slate-100 text-slate-600 dark:text-slate-300">
+                          <tbody className="divide-y divide-slate-100 text-slate-600">
                             {rfqDetails.items?.map((item) => (
-                              <tr key={item.id} className="hover:bg-slate-50 dark:bg-slate-900/10">
+                              <tr key={item.id} className="hover:bg-slate-50/10">
                                 <td className="py-2.5 px-4 font-mono">{item.itemNo}</td>
-                                <td className="py-2.5 px-4 font-semibold text-slate-700 dark:text-slate-200">{item.description}</td>
+                                <td className="py-2.5 px-4 font-semibold text-slate-700">{item.description}</td>
                                 <td className="py-2.5 px-4 text-center">{item.quantity} {item.unit}</td>
-                                <td className="py-2.5 px-4 text-slate-500 dark:text-slate-400">{item.specifications || '-'}</td>
+                                <td className="py-2.5 px-4 text-slate-500">{item.specifications || '-'}</td>
                                 <td className="py-2.5 px-4 italic text-slate-400">{item.notes || '-'}</td>
                               </tr>
                             ))}
@@ -514,18 +567,18 @@ export default function DocumentsPage() {
               )}
             </div>
 
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-end space-x-2 text-xs">
-              {canDownloadDoc(user?.role || '', selectedDoc.fileType) && (
+            <div className="pt-4 border-t border-slate-100 flex justify-end space-x-2 text-xs">
+              {selectedDoc && canDownloadDoc(user?.role || '', selectedDoc.fileType) && (
                 <button
                   onClick={() => handleDownload(selectedDoc)}
-                  className="px-4 py-2 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-300 rounded-lg font-semibold"
+                  className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg font-semibold"
                 >
                   Unduh Berkas Excel Fisik
                 </button>
               )}
               <button
                 onClick={() => setSelectedDoc(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 dark:text-slate-300 rounded-lg font-semibold"
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-semibold"
               >
                 Tutup
               </button>
