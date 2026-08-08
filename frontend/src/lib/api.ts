@@ -1,19 +1,40 @@
 import axios from 'axios';
-import Cookies from 'js-cookie';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+export const getBackendHostUrl = (): string => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '');
+  }
+  if (typeof window !== 'undefined') {
+    return window.location.origin;
+  }
+  return 'http://127.0.0.1:5000';
+};
+
+export const getApiBaseUrl = (): string => {
+  return `${getBackendHostUrl()}/api`;
+};
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Interceptor untuk menyisipkan token JWT secara otomatis ke Header Authorization
+// Interceptor untuk menyisipkan token JWT & memastikan Host URL Backend selalu melalui proxy Next.js / API
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get('token');
+    if (typeof window !== 'undefined') {
+      const baseUrl = getApiBaseUrl();
+      if (config.url && !config.url.startsWith('http')) {
+        const cleanPath = config.url.startsWith('/') ? config.url : `/${config.url}`;
+        config.url = `${baseUrl}${cleanPath}`;
+        config.baseURL = '';
+      } else {
+        config.baseURL = baseUrl;
+      }
+    }
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('token') : null;
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -24,15 +45,35 @@ api.interceptors.request.use(
   }
 );
 
-// Interceptor untuk menangani error unauthorized (token expired, dll)
+let isRedirectingToLogin = false;
+
+// Interceptor untuk menangani error unauthorized dan broadcast perubahan data real-time
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (typeof window !== 'undefined' && ['post', 'put', 'delete', 'patch'].includes((response.config.method || '').toLowerCase())) {
+      try {
+        window.dispatchEvent(new CustomEvent('app_data_changed'));
+        if ('BroadcastChannel' in window) {
+          const channel = new BroadcastChannel('app_data_sync');
+          channel.postMessage({ type: 'DATA_CHANGED', timestamp: Date.now() });
+          channel.close();
+        }
+      } catch (e) {
+        // Ignore broadcast errors
+      }
+    }
+    return response;
+  },
   (error) => {
     if (error.response && error.response.status === 401) {
-      Cookies.remove('token');
-      Cookies.remove('user');
-      if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-        window.location.href = '/login';
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        window.dispatchEvent(new Event('auth_logout'));
+        if (!isRedirectingToLogin && window.location.pathname !== '/login') {
+          isRedirectingToLogin = true;
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
