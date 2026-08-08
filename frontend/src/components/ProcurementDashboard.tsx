@@ -237,7 +237,7 @@ export default function ProcurementDashboard({
     const headers = [
       'No', 'Kode Proyek', 'PT', 'Nama Client', 'Nama Pekerjaan', 'No SPK',
       'Modal BOQ (Rp)', 'Total PO BOQ Material (Rp)', 'Nilai Jasa Proyek Admin (Rp)',
-      'Total Pengeluaran (Rp)', 'Sisa Modal (Rp)', '% Sisa Modal'
+      'Total Pengeluaran (Rp)', '% Pengeluaran', 'Sisa Modal (Rp)', '% Sisa Modal'
     ];
 
     // Baris data mulai dari baris ke-2 (baris 1 = header)
@@ -251,6 +251,11 @@ export default function ProcurementDashboard({
       const modalBoq = rawModal > 0 ? rawModal : (poMaterial > 0 ? poMaterial : 0);
       const ptVal = remarksObj.procurementPt || extractCompanyCode(proj.code);
       const clientVal = remarksObj.procurementClient || extractClientCode(proj.code, remarksObj.reqBy);
+      const totalPengeluaran = poMaterial + nilaiJasa;
+      const baseModal = nilaiJasa > 0 ? nilaiJasa : modalBoq;
+      const sisaModal = baseModal > 0 ? (baseModal - totalPengeluaran) : (modalBoq - totalPengeluaran);
+      const pctPengeluaran = baseModal > 0 ? (totalPengeluaran / baseModal) * 100 : 0;
+      const pctSisa = modalBoq > 0 ? (sisaModal / modalBoq) * 100 : 0;
 
       return [
         idx + 1,
@@ -259,12 +264,13 @@ export default function ProcurementDashboard({
         clientVal || '',
         proj.name || '',
         remarksObj.procurementNoSpk || '',
-        modalBoq,       // Col G (7) = Modal BOQ
-        poMaterial,     // Col H (8) = Total PO BOQ Material
-        nilaiJasa,      // Col I (9) = Nilai Jasa
-        poMaterial + nilaiJasa,  // Col J (10) = Total Pengeluaran — akan diganti formula
-        modalBoq - (poMaterial + nilaiJasa), // Col K (11) = Sisa Modal — akan diganti formula
-        modalBoq > 0 ? ((modalBoq - (poMaterial + nilaiJasa)) / modalBoq) * 100 : 0, // Col L (12) = %
+        modalBoq,          // Col G = Modal BOQ
+        poMaterial,        // Col H = Total PO BOQ Material
+        nilaiJasa,         // Col I = Nilai Jasa
+        totalPengeluaran,  // Col J = Total Pengeluaran
+        pctPengeluaran,    // Col K = % Pengeluaran
+        sisaModal,         // Col L = Sisa Modal
+        pctSisa,           // Col M = % Sisa Modal
       ];
     });
 
@@ -272,14 +278,15 @@ export default function ProcurementDashboard({
 
     // Inject formula Excel untuk setiap baris data
     filteredProjects.forEach((_, idx) => {
-      const rowNum = idx + 2; // baris data mulai dari row 2
-      // Kolom mapping (A=1, B=2, ..., G=Modal BOQ, H=Total PO, I=Nilai Jasa, J=Total Pengeluaran, K=Sisa Modal, L=%)
+      const rowNum = idx + 2;
       // Total Pengeluaran = H + I
       ws[`J${rowNum}`] = { t: 'n', f: `H${rowNum}+I${rowNum}` };
-      // Sisa Modal = G - J  (Modal BOQ - Total Pengeluaran)
-      ws[`K${rowNum}`] = { t: 'n', f: `G${rowNum}-J${rowNum}` };
-      // % Sisa Modal = Sisa Modal / Modal BOQ × 100%  =  =IF(G>0,(G-J)/G,0)
-      ws[`L${rowNum}`] = { t: 'n', f: `IF(G${rowNum}>0,(G${rowNum}-J${rowNum})/G${rowNum},0)`, z: '0.00%' };
+      // % Pengeluaran = Total Pengeluaran / Nilai Jasa (atau Modal BOQ)
+      ws[`K${rowNum}`] = { t: 'n', f: `IF(I${rowNum}>0, J${rowNum}/I${rowNum}, IF(G${rowNum}>0, J${rowNum}/G${rowNum}, 0))`, z: '0.00%' };
+      // Sisa Modal = Nilai Jasa - Total Pengeluaran (atau Modal BOQ - Total Pengeluaran)
+      ws[`L${rowNum}`] = { t: 'n', f: `IF(I${rowNum}>0, I${rowNum}-J${rowNum}, G${rowNum}-J${rowNum})` };
+      // % Sisa Modal = Sisa Modal / Modal BOQ × 100%
+      ws[`M${rowNum}`] = { t: 'n', f: `IF(G${rowNum}>0, L${rowNum}/G${rowNum}, 0)`, z: '0.00%' };
     });
 
     // Format angka sebagai currency (tidak ada simbol Rp di Excel agar formula bisa dikalkulasi)
@@ -551,6 +558,9 @@ export default function ProcurementDashboard({
                 <th className="w-[160px] min-w-[160px] bg-[#0d2818] dark:bg-slate-950 border-r border-b border-emerald-950 py-2.5 px-2 text-center font-extrabold text-emerald-300">
                   Total Pengeluaran
                 </th>
+                <th className="w-[100px] min-w-[100px] bg-[#1b4332] dark:bg-slate-900 border-r border-b border-emerald-950 py-2.5 px-2 text-center font-bold text-amber-200">
+                  % Pengeluaran
+                </th>
                 <th className="w-[150px] min-w-[150px] bg-[#1b4332] dark:bg-slate-900 border-r border-b border-emerald-950 py-2.5 px-2 text-center font-bold">
                   Sisa Modal
                 </th>
@@ -568,7 +578,7 @@ export default function ProcurementDashboard({
             <tbody>
               {filteredProjects.length === 0 && (
                 <tr>
-                  <td colSpan={14} className="py-12 text-center text-slate-400 font-semibold border-b border-slate-300 dark:border-slate-700">
+                  <td colSpan={15} className="py-12 text-center text-slate-400 font-semibold border-b border-slate-300 dark:border-slate-700">
                     Tidak ada data proyek.
                   </td>
                 </tr>
@@ -583,23 +593,24 @@ export default function ProcurementDashboard({
                 const poMaterialTotal = getProjectMaterialPoTotal(proj.id, proj.code);
                 const nilaiJasaTotal = getProjectNilaiJasaTotal(proj.id, proj.code, remarksObj);
                 
-                // Total Pengeluaran = Total PO (BOQ Material) + Nilai Jasa (Proyek Admin) 100% OTOMATIS
+                // Total Pengeluaran = Total PO (BOQ Material) + Nilai Jasa (Proyek Admin)
                 const totalPengeluaran = poMaterialTotal + nilaiJasaTotal;
 
                 const rawModalBoqParsed = parseIndonesianMoney(remarksObj.procurementModalBoq !== undefined ? remarksObj.procurementModalBoq : remarksObj.nilaiKontrak);
                 const modalBoqNum = rawModalBoqParsed > 0 ? rawModalBoqParsed : (poMaterialTotal > 0 ? poMaterialTotal : 0);
 
-                // Sisa Modal = Modal BOQ - Total Pengeluaran (OTOMATIS)
-                const sisaModal = modalBoqNum > 0 ? (modalBoqNum - totalPengeluaran) : 0;
-                
-                // % Sisa Modal = Sisa Modal / Modal BOQ × 100%
-                let percentSisa = 0;
-                if (modalBoqNum > 0) {
-                  percentSisa = (sisaModal / modalBoqNum) * 100;
-                  if (isNaN(percentSisa) || !isFinite(percentSisa)) percentSisa = 0;
-                } else {
-                  percentSisa = 0;
-                }
+                // 1. Sisa Modal = Nilai Jasa - Total Pengeluaran (jika Nilai Jasa > 0), else Modal BOQ - Total Pengeluaran
+                const baseModal = nilaiJasaTotal > 0 ? nilaiJasaTotal : modalBoqNum;
+                const sisaModal = baseModal > 0 ? (baseModal - totalPengeluaran) : (modalBoqNum - totalPengeluaran);
+
+                // 2. % Pengeluaran = Total Pengeluaran / Nilai Jasa × 100% (atau / Modal BOQ)
+                const denomPengeluaran = nilaiJasaTotal > 0 ? nilaiJasaTotal : modalBoqNum;
+                let percentPengeluaran = denomPengeluaran > 0 ? (totalPengeluaran / denomPengeluaran) * 100 : 0;
+                if (isNaN(percentPengeluaran) || !isFinite(percentPengeluaran)) percentPengeluaran = 0;
+
+                // 3. % Sisa Modal = Sisa Modal / Modal BOQ × 100%
+                let percentSisa = modalBoqNum > 0 ? (sisaModal / modalBoqNum) * 100 : 0;
+                if (isNaN(percentSisa) || !isFinite(percentSisa)) percentSisa = 0;
 
 
 
@@ -708,7 +719,10 @@ export default function ProcurementDashboard({
                       {formatCurrency(totalPengeluaran)}
                     </td>
 
-
+                    {/* ── % PENGELUARAN ── */}
+                    <td className="w-[100px] min-w-[100px] border-r border-b border-slate-300 dark:border-slate-700 py-2 px-2 text-right font-bold text-amber-700 dark:text-amber-300">
+                      {formatPercent(percentPengeluaran)}
+                    </td>
 
                     {/* ── SISA MODAL (RUMUS FORMULA) ───────────────────────── */}
                     <td className={`w-[150px] min-w-[150px] border-r border-b border-slate-300 dark:border-slate-700 py-2.5 px-2 text-right font-extrabold ${sisaModal < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-700 dark:text-emerald-400'}`}>
